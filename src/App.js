@@ -35,7 +35,7 @@ function App() {
   const [position, setPosition] = useState();
   const [deviceId, setDeviceId] = useState();
   const [state, setState] = useState();
-  const [dbstate, setdbState] = useState();
+  const jeffDevice = "9a9d99bc0edf67b879a3c01fc70ff7c11f6c3663";
 
   //setting up the player
   useEffect(() => {
@@ -78,6 +78,7 @@ function App() {
       // Ready
       player.addListener("ready", ({ device_id }) => {
         console.log("Ready with Device ID", device_id);
+        console.log("AA", typeof device_id);
         setDeviceId(device_id);
       });
 
@@ -103,22 +104,16 @@ function App() {
 
   useEffect(() => {
     const path = `users/${partyName}`;
-    console.log(path);
-    console.log("state changed");
+    // console.log(path);
+    // console.log("state changed");
     if (state) {
       db.ref(path).set({
         deviceid: deviceId,
         token: token,
         state: state,
       });
-      var roomInstance = db.ref("users/" + partyName + "/state");
-      roomInstance.on("value", function (snapshot) {
-        setdbState(snapshot.val());
-      });
     }
   }, [state, position, pause]);
-
-  console.log("AAAAA", dbstate);
 
   if (!token) {
     return (
@@ -139,7 +134,7 @@ function App() {
     );
   }
 
-  if (token && !partyName && !trackURI) {
+  if (deviceId === jeffDevice && token && !partyName && !trackURI) {
     return (
       <div ref={playerDiv}>
         <header className="App-header">
@@ -166,9 +161,7 @@ function App() {
         </header>
       </div>
     );
-  }
-
-  if (token && partyName && !trackURI) {
+  } else if (deviceId === jeffDevice && token && partyName && !trackURI) {
     return (
       <div ref={playerDiv}>
         <header className="App-header">
@@ -180,9 +173,13 @@ function App() {
         </header>
       </div>
     );
-  }
-
-  if (token && partyName && trackURI && deviceId) {
+  } else if (
+    deviceId === jeffDevice &&
+    token &&
+    partyName &&
+    trackURI &&
+    deviceId
+  ) {
     return (
       <div ref={playerDiv}>
         <header className="App-header">
@@ -192,6 +189,43 @@ function App() {
         </header>
       </div>
     );
+  }
+
+  //IF YOU ARE NOT JEFF
+  else if (deviceId !== jeffDevice) {
+    let jeffsRoom = "";
+    let uri = "";
+    // let paused = "";
+    // let position = "";
+
+    const roomInstance = db.ref("users/");
+    roomInstance.on("value", function (snapshot) {
+      const dbState = snapshot.val();
+      const dbPartyNameArr = Object.keys(dbState);
+      console.log("PARTY NAME ARRAY", dbPartyNameArr);
+      const dbPartyName = dbPartyNameArr[dbPartyNameArr.length - 1];
+      jeffsRoom = dbPartyName;
+      const jeffsRoomObj = dbState[dbPartyName];
+      const state = jeffsRoomObj["state"];
+      let paused = state["paused"];
+      let position = state["position"];
+      const trackWindow = state["track_window"];
+      const currentTrack = trackWindow["current_track"];
+      uri = currentTrack["uri"];
+      console.log("UPDATESSSSS", paused, position, currentTrack["uri"]);
+    });
+
+    return (
+      <div ref={playerDiv}>
+        <header className="App-header">
+          <h1>Playing at {jeffsRoom}</h1>
+          <p>Currently Playing...</p>
+          <SpotifyPlayer uri={uri} theme={"black"} view={"list"} />
+        </header>
+      </div>
+    );
+  } else {
+    console.log("POop");
   }
 }
 
