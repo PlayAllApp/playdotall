@@ -35,6 +35,7 @@ function App() {
   const [position, setPosition] = useState();
   const [deviceId, setDeviceId] = useState();
   const [state, setState] = useState();
+  const [paused, setPaused] = useState();
   const jeffDevice = "9a9d99bc0edf67b879a3c01fc70ff7c11f6c3663";
 
   //setting up the player
@@ -104,8 +105,6 @@ function App() {
 
   useEffect(() => {
     const path = `users/${partyName}`;
-    // console.log(path);
-    // console.log("state changed");
     if (state) {
       db.ref(path).set({
         deviceid: deviceId,
@@ -133,6 +132,8 @@ function App() {
       </div>
     );
   }
+
+  //add an if statement with no device
 
   if (deviceId === jeffDevice && token && !partyName && !trackURI) {
     return (
@@ -197,7 +198,6 @@ function App() {
     let uri = "";
     // let paused = "";
     // let position = "";
-
     const roomInstance = db.ref("users/");
     roomInstance.on("value", function (snapshot) {
       const dbState = snapshot.val();
@@ -214,7 +214,6 @@ function App() {
       uri = currentTrack["uri"];
       console.log("UPDATESSSSS", paused, position, currentTrack["uri"]);
     });
-
     return (
       <div ref={playerDiv}>
         <header className="App-header">
