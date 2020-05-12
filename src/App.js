@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import "./App.css";
 import firebase from "firebase";
-import SpotifyPlayer from "react-spotify-player";
+//import SpotifyPlayer from "react-spotify-player";
+import SpotifyPlayer from "react-spotify-web-playback";
 
 //firebase settings
 const firebaseConfig = {
@@ -19,7 +20,14 @@ function App() {
   const token = window.location.hash.slice(14).split("&")[0];
   const clientId = "f5b9df7177184266a5de8eb2c679b982";
   const redirectUri = "http://localhost:3000/";
-  const scopes = ["streaming", "user-read-email", "user-read-private"];
+  const scopes = [
+    "streaming",
+    "user-read-email",
+    "user-read-private",
+    // "user-read-birthdate",
+    "user-read-playback-state",
+    "user-modify-playback-state",
+  ];
   const authEndpoint = "https://accounts.spotify.com/authorize";
   const authURL = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
     "%20"
@@ -98,9 +106,9 @@ function App() {
       player.addListener("player_state_changed", (state) => {
         setState(state);
         setTrackURI(state.track_window.current_track.uri);
-        setPause(state.paused);
-        setPosition(state.position);
-        setTrackName(state.track_window.current_track.Name);
+        // setPause(state.paused);
+        // setPosition(state.position);
+        // setTrackName(state.track_window.current_track.Name);
       });
 
       // Connect to the player!
@@ -109,17 +117,18 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const path = `users/${deviceId}`;
-    if (state) {
-      db.ref(path).set({
-        partyname: partyName,
-        token: token,
-        state: state,
-      });
+    if (deviceId === jeffDevice) {
+      const path = `users/${deviceId}`;
+      if (state) {
+        db.ref(path).set({
+          partyname: partyName,
+          token: token,
+          state: state,
+        });
+      }
     }
   });
 
-  //GET JEFFS DB DATA
   useEffect(() => {
     const path = `users/${jeffDevice}`;
     db.ref(path).on("value", (snapshot) => {
@@ -135,8 +144,6 @@ function App() {
       setdbURI(dbURI);
     });
   });
-
-  console.log("AAA", dbPartyName, dbPause, dbPosition, dbURI);
 
   if (!token) {
     return (
@@ -227,12 +234,38 @@ function App() {
 
   //IF YOU ARE NOT JEFF
   else if (deviceId !== jeffDevice && token) {
+    // if (dbPause) {
+    //   return (
+    //     <div ref={playerDiv}>
+    //       <header className="App-header">
+    //         <h1>Room is currently empty</h1>
+    //       </header>
+    //     </div>
+    //   );
+    // }
+    console.log("AAA", dbPartyName, dbPause, dbPosition, dbURI, token);
     return (
       <div ref={playerDiv}>
         <header className="App-header">
           <h1>Playing at {dbPartyName}</h1>
           <p>Currently Playing...</p>
-          <SpotifyPlayer uri={dbURI} theme={"black"} view={"list"} />
+          <SpotifyPlayer
+            offset={dbPosition}
+            token={token}
+            uris={[dbURI]}
+            autoPlay={true}
+            play={!dbPause}
+            name={"Play.All() Music Player"}
+            styles={{
+              bgColor: "#333",
+              color: "#fff",
+              loaderColor: "#fff",
+              sliderColor: "#1cb954",
+              savedColor: "#fff",
+              trackArtistColor: "#ccc",
+              trackNameColor: "#fff",
+            }}
+          />
         </header>
       </div>
     );
