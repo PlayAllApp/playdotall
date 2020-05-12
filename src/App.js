@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import "./App.css";
 import firebase from "firebase";
-//import SpotifyPlayer from "react-spotify-player";
+import SpotifyPlayer2 from "react-spotify-player";
 import SpotifyPlayer from "react-spotify-web-playback";
 
 //firebase settings
@@ -19,7 +19,7 @@ function App() {
   //getting the token
   const token = window.location.hash.slice(14).split("&")[0];
   const clientId = "f5b9df7177184266a5de8eb2c679b982";
-  const redirectUri = "http://localhost:3000/";
+  const redirectUri = "https://playdotall.web.app/";
   const scopes = [
     "streaming",
     "user-read-email",
@@ -51,6 +51,9 @@ function App() {
   const [dbPause, setdbPause] = useState();
   const [dbPosition, setdbPosition] = useState();
   const [dbURI, setdbURI] = useState();
+  const [dbTrack, setdbTrack] = useState();
+  const [dbAlbumart, setdbAlbumart] = useState();
+  const [dbArtist, setdbArtist] = useState();
 
   //setting up the player
   const playerDiv = useRef();
@@ -138,10 +141,20 @@ function App() {
       let dbpaused = dbData["state"]["paused"];
       let dbposition = dbData["state"]["position"];
       let dbURI = dbData["state"]["track_window"]["current_track"]["uri"];
+      let dbtrack = dbData["state"]["track_window"]["current_track"]["name"];
+      let dbArt =
+        dbData["state"]["track_window"]["current_track"]["album"]["images"][0][
+          "url"
+        ];
+      let dbArtist =
+        dbData["state"]["track_window"]["current_track"]["artists"][0]["name"];
       setdbPartyName(dbPartyName);
       setdbPause(dbpaused);
       setdbPosition(dbposition);
       setdbURI(dbURI);
+      setdbTrack(dbtrack);
+      setdbAlbumart(dbArt);
+      setdbArtist(dbArtist);
     });
   });
 
@@ -226,7 +239,7 @@ function App() {
         <header className="App-header">
           <h1>Playing at {partyName}</h1>
           <p>Currently Playing...</p>
-          <SpotifyPlayer uri={trackURI} theme={"black"} view={"list"} />
+          <SpotifyPlayer2 uri={trackURI} theme={"black"} view={"list"} />
         </header>
       </div>
     );
@@ -234,21 +247,33 @@ function App() {
 
   //IF YOU ARE NOT JEFF
   else if (deviceId !== jeffDevice && token) {
-    // if (dbPause) {
-    //   return (
-    //     <div ref={playerDiv}>
-    //       <header className="App-header">
-    //         <h1>Room is currently empty</h1>
-    //       </header>
-    //     </div>
-    //   );
-    // }
-    console.log("AAA", dbPartyName, dbPause, dbPosition, dbURI, token);
+    if (dbPause) {
+      return (
+        <div ref={playerDiv}>
+          <header className="App-header">
+            <h1>Room is currently empty</h1>
+          </header>
+        </div>
+      );
+    }
+    console.log("PAUSED?", dbPause, "POSITION: ", dbPosition, "dbURI: ", dbURI);
     return (
       <div ref={playerDiv}>
         <header className="App-header">
           <h1>Playing at {dbPartyName}</h1>
           <p>Currently Playing...</p>
+          <img src={dbAlbumart}></img>
+          <p>
+            {dbTrack} by {dbArtist}
+          </p>
+          <p>
+            Paused? {!dbPause}
+            <br></br>
+            Position: {dbPosition}
+            <br></br>
+            Track URI: {dbURI}
+            <br></br>
+          </p>
           <SpotifyPlayer
             offset={dbPosition}
             token={token}
