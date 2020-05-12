@@ -25,20 +25,27 @@ function App() {
     "%20"
   )}&response_type=token&show_dialog=true`;
 
-  //getting room imformation
-  const [partyName, setPartyName] = useState();
+  //get device Id of signed in user to make sure it's not Jeff's
+  const [deviceId, setDeviceId] = useState();
+
+  //getting room imformation for Jeff
+  const jeffDevice = "9a9d99bc0edf67b879a3c01fc70ff7c11f6c3663";
   const partyNameInput = useRef();
-  const playerDiv = useRef();
+  const [partyName, setPartyName] = useState();
   const [trackURI, setTrackURI] = useState();
   const [trackName, setTrackName] = useState();
   const [pause, setPause] = useState();
   const [position, setPosition] = useState();
-  const [deviceId, setDeviceId] = useState();
   const [state, setState] = useState();
-  const [paused, setPaused] = useState();
-  const jeffDevice = "9a9d99bc0edf67b879a3c01fc70ff7c11f6c3663";
+
+  //JEFFS DB DATA
+  const [dbPartyName, setdbPartyName] = useState();
+  const [dbPause, setdbPause] = useState();
+  const [dbPosition, setdbPosition] = useState();
+  const [dbURI, setdbURI] = useState();
 
   //setting up the player
+  const playerDiv = useRef();
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
@@ -79,7 +86,6 @@ function App() {
       // Ready
       player.addListener("ready", ({ device_id }) => {
         console.log("Ready with Device ID", device_id);
-        console.log("AA", typeof device_id);
         setDeviceId(device_id);
       });
 
@@ -90,7 +96,6 @@ function App() {
 
       // Playback status updates
       player.addListener("player_state_changed", (state) => {
-        console.log(state);
         setState(state);
         setTrackURI(state.track_window.current_track.uri);
         setPause(state.paused);
@@ -104,15 +109,34 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const path = `users/${partyName}`;
+    const path = `users/${deviceId}`;
     if (state) {
       db.ref(path).set({
-        deviceid: deviceId,
+        partyname: partyName,
         token: token,
         state: state,
       });
     }
-  }, [state, position, pause]);
+  });
+
+  //GET JEFFS DB DATA
+  useEffect(() => {
+    const path = `users/${jeffDevice}`;
+    db.ref(path).on("value", (snapshot) => {
+      let data = snapshot.val() ? snapshot.val() : {};
+      let dbData = { ...data };
+      let dbPartyName = dbData["partyname"];
+      let dbpaused = dbData["state"]["paused"];
+      let dbposition = dbData["state"]["position"];
+      let dbURI = dbData["state"]["track_window"]["current_track"]["uri"];
+      setdbPartyName(dbPartyName);
+      setdbPause(dbpaused);
+      setdbPosition(dbposition);
+      setdbURI(dbURI);
+    });
+  });
+
+  console.log("AAA", dbPartyName, dbPause, dbPosition, dbURI);
 
   if (!token) {
     return (
@@ -133,8 +157,17 @@ function App() {
     );
   }
 
-  //add an if statement with no device
+  if (!deviceId) {
+    return (
+      <div ref={playerDiv}>
+        <header className="App-header">
+          <p>Loading...</p>
+        </header>
+      </div>
+    );
+  }
 
+  //IF YOU ARE JEFF
   if (deviceId === jeffDevice && token && !partyName && !trackURI) {
     return (
       <div ref={playerDiv}>
@@ -193,38 +226,18 @@ function App() {
   }
 
   //IF YOU ARE NOT JEFF
-  else if (deviceId !== jeffDevice) {
-    let jeffsRoom = "";
-    let uri = "";
-    // let paused = "";
-    // let position = "";
-    const roomInstance = db.ref("users/");
-    roomInstance.on("value", function (snapshot) {
-      const dbState = snapshot.val();
-      const dbPartyNameArr = Object.keys(dbState);
-      console.log("PARTY NAME ARRAY", dbPartyNameArr);
-      const dbPartyName = dbPartyNameArr[dbPartyNameArr.length - 1];
-      jeffsRoom = dbPartyName;
-      const jeffsRoomObj = dbState[dbPartyName];
-      const state = jeffsRoomObj["state"];
-      let paused = state["paused"];
-      let position = state["position"];
-      const trackWindow = state["track_window"];
-      const currentTrack = trackWindow["current_track"];
-      uri = currentTrack["uri"];
-      console.log("UPDATESSSSS", paused, position, currentTrack["uri"]);
-    });
+  else if (deviceId !== jeffDevice && token) {
     return (
       <div ref={playerDiv}>
         <header className="App-header">
-          <h1>Playing at {jeffsRoom}</h1>
+          <h1>Playing at {dbPartyName}</h1>
           <p>Currently Playing...</p>
-          <SpotifyPlayer uri={uri} theme={"black"} view={"list"} />
+          <SpotifyPlayer uri={dbURI} theme={"black"} view={"list"} />
         </header>
       </div>
     );
   } else {
-    console.log("POop");
+    alert("Oh no!");
   }
 }
 
