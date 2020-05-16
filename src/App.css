@@ -50,3 +50,8 @@
   border-radius: 25px;
   padding: 30px;
 }
+
+.room {
+  border: 1px solid blue;
+  padding: 10px;
+}

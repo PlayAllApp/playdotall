@@ -33,11 +33,14 @@ function App() {
     "%20"
   )}&response_type=token&show_dialog=true`;
 
-  //get user type
+  //none || host || listener
   const [usertype, setUsertype] = useState("none");
 
   //get device Id of signed in user
   const [deviceId, setDeviceId] = useState();
+
+  //available rooms
+  const [rooms, setRooms] = useState();
 
   const [loading, error] = useScript({
     src: "https://sdk.scdn.co/spotify-player.js",
@@ -87,12 +90,14 @@ function App() {
       console.log("The Web Playback SDK has loaded.");
 
       const sdk = new Player({
-        name: "Web Playback SDK",
+        name: "Play.all() Music Player",
         volume: 1.0,
         getOAuthToken: (callback) => {
           callback(token);
         },
       });
+
+      setSdk(sdk);
 
       sdk.connect().then((success) => {
         if (success) {
@@ -106,23 +111,8 @@ function App() {
         console.log("Ready with Device ID", device_id);
         setDeviceId(device_id);
       });
-
-      sdk.getCurrentState().then((state) => {
-        console.log(state);
-      });
-
-      sdk.addListener("player_state_changed", (state) => {
-        console.log("player state changed");
-        setState(state);
-        setTrackURI(state.track_window.current_track.uri);
-        // setPause(state.paused);
-        // setPosition(state.position);
-        // setTrackName(state.track_window.current_track.Name);
-      });
     })();
   }, []);
-
-  console.log("TRACK URI", trackURI);
 
   useEffect(() => {
     if (state) {
@@ -132,31 +122,62 @@ function App() {
     }
   });
 
-  // useEffect(() => {
-  //   const path = `users/${jeffDevice}`;
-  //   db.ref(path).on("value", (snapshot) => {
-  //     let data = snapshot.val() ? snapshot.val() : {};
-  //     let dbData = { ...data };
-  //     let dbPartyName = dbData["partyname"];
-  //     let dbpaused = dbData["state"]["paused"];
-  //     let dbposition = dbData["state"]["position"];
-  //     let dbURI = dbData["state"]["track_window"]["current_track"]["uri"];
-  //     let dbtrack = dbData["state"]["track_window"]["current_track"]["name"];
-  //     let dbArt =
-  //       dbData["state"]["track_window"]["current_track"]["album"]["images"][0][
-  //         "url"
-  //       ];
-  //     let dbArtist =
-  //       dbData["state"]["track_window"]["current_track"]["artists"][0]["name"];
-  //     setdbPartyName(dbPartyName);
-  //     setdbPause(dbpaused);
-  //     setdbPosition(dbposition);
-  //     setdbURI(dbURI);
-  //     setdbTrack(dbtrack);
-  //     setdbAlbumart(dbArt);
-  //     setdbArtist(dbArtist);
-  //   });
-  // });
+  useEffect(() => {
+    const data = db.collection("room");
+    data.get().then(function (querySnapshot) {
+      const rooms = [];
+      if (querySnapshot.size > 0) {
+        querySnapshot.docs.forEach((documentSnapshot) => {
+          let data = documentSnapshot.data() ? documentSnapshot.data() : {};
+          let dbData = { ...data };
+          let dbPartyName = dbData["partyname"];
+          let dbpaused = dbData["state"]["paused"];
+          let dbposition = dbData["state"]["position"];
+          let dbURI = dbData["state"]["track_window"]["current_track"]["uri"];
+          let dbtrack =
+            dbData["state"]["track_window"]["current_track"]["name"];
+          let dbArt =
+            dbData["state"]["track_window"]["current_track"]["album"][
+              "images"
+            ][0]["url"];
+          let dbArtist =
+            dbData["state"]["track_window"]["current_track"]["artists"][0][
+              "name"
+            ];
+          setdbPartyName(dbPartyName);
+          setdbPause(dbpaused);
+          setdbPosition(dbposition);
+          setdbURI(dbURI);
+          setdbTrack(dbtrack);
+          setdbAlbumart(dbArt);
+          setdbArtist(dbArtist);
+        });
+      }
+    });
+
+    // db.ref(path).on("value", (snapshot) => {
+    //   let data = snapshot.val() ? snapshot.val() : {};
+    //   let dbData = { ...data };
+    //   let dbPartyName = dbData["partyname"];
+    //   let dbpaused = dbData["state"]["paused"];
+    //   let dbposition = dbData["state"]["position"];
+    //   let dbURI = dbData["state"]["track_window"]["current_track"]["uri"];
+    //   let dbtrack = dbData["state"]["track_window"]["current_track"]["name"];
+    //   let dbArt =
+    //     dbData["state"]["track_window"]["current_track"]["album"]["images"][0][
+    //       "url"
+    //     ];
+    //   let dbArtist =
+    //     dbData["state"]["track_window"]["current_track"]["artists"][0]["name"];
+    //   setdbPartyName(dbPartyName);
+    //   setdbPause(dbpaused);
+    //   setdbPosition(dbposition);
+    //   setdbURI(dbURI);
+    //   setdbTrack(dbtrack);
+    //   setdbAlbumart(dbArt);
+    //   setdbArtist(dbArtist);
+    // });
+  });
 
   //sign in and get token
   if (!token) {
@@ -187,13 +208,18 @@ function App() {
             <div className="flexbox-container">
               <div>
                 <h1>Join a room and listen to music</h1>
-                <button
+                <div
+                  className="room"
                   onClick={() => {
                     setUsertype("listener");
                   }}
                 >
-                  Party Name 1
-                </button>
+                  <p>{dbPartyName} is currently playing...</p>
+                  <img src={dbAlbumart}></img>
+                  <p>
+                    {dbTrack} by {dbArtist}
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -247,6 +273,19 @@ function App() {
         </div>
       );
     if (partyName && !trackURI) {
+      sdk.addListener("player_state_changed", (state) => {
+        console.log("player state changed");
+        setState(state);
+        setTrackURI(state.track_window.current_track.uri);
+        // setPause(state.paused);
+        // setPosition(state.position);
+        // setTrackName(state.track_window.current_track.Name);
+      });
+      console.log("SDK", sdk);
+      db.collection("room").doc(deviceId).set({
+        partyname: partyName,
+        token: token,
+      });
       return (
         <div>
           <header className="App-header">
@@ -256,11 +295,27 @@ function App() {
               device and play!
             </p>
           </header>
+          <br></br>
+          <button
+            onClick={() => {
+              setUsertype("none");
+            }}
+          >
+            Back
+          </button>
         </div>
       );
     }
     if (trackURI) {
-      console.log("TRACK URI EXISTS");
+      console.log("SDK", sdk);
+      sdk.addListener("player_state_changed", (state) => {
+        console.log("player state changed");
+        setState(state);
+        setTrackURI(state.track_window.current_track.uri);
+        // setPause(state.paused);
+        // setPosition(state.position);
+        // setTrackName(state.track_window.current_track.Name);
+      });
       return (
         <div>
           <header className="App-header">
@@ -268,6 +323,18 @@ function App() {
             <p>Currently Playing...</p>
             <SpotifyPlayer2 uri={trackURI} theme={"black"} view={"list"} />
           </header>
+          <br></br>
+          <button
+            onClick={() => {
+              sdk.disconnect();
+              setUsertype("none");
+              // setPartyName("");
+              // setTrackURI("");
+              // setState("");
+            }}
+          >
+            Back
+          </button>
         </div>
       );
     }
@@ -277,6 +344,14 @@ function App() {
         <div className="App">
           <header className="App-header">
             <p>I'm a listener</p>
+            <p>
+              Paused? {!dbPause}
+              <br></br>
+              Position: {dbPosition}
+              <br></br>
+              Track URI: {dbURI}
+              <br></br>
+            </p>
             <button
               onClick={() => {
                 setUsertype("none");
