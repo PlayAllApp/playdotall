@@ -15,6 +15,8 @@ import "./App.css";
 import SpotifyPlayer2 from "react-spotify-player";
 import SpotifyPlayer from "react-spotify-web-playback";
 import db from "./firebaseConfig";
+import SpotifyWebApi from "spotify-web-api-node";
+import * as spotify from "spotify-web-sdk";
 
 function App() {
   //getting the token
@@ -33,23 +35,33 @@ function App() {
     "%20"
   )}&response_type=token&show_dialog=true`;
 
+  console.log("SPOTIFY", spotify);
+  spotify.init({ token: token });
+  spotify
+    .getCurrentUserProfile()
+    .then((profile) => console.log("PROFILE", profile));
+
+  //load Spotify SDK script
+  const [loading, error] = useScript({
+    src: "https://sdk.scdn.co/spotify-player.js",
+    onload: () => console.log("Script loaded"),
+  });
+
+  const spotifyApi = new SpotifyWebApi({
+    clientId: clientId,
+    redirectUri: redirectUri,
+  });
+  spotifyApi.setAccessToken(token);
+
   //none || host || listener
   const [usertype, setUsertype] = useState("none");
 
   //get device Id of signed in user
   const [deviceId, setDeviceId] = useState();
 
-  //available rooms
-  const [rooms, setRooms] = useState();
-
-  const [loading, error] = useScript({
-    src: "https://sdk.scdn.co/spotify-player.js",
-    onload: () => console.log("Script loaded"),
-  });
-
   //getting room imformation for Jeff
-  const jeffDevice = "264b89476d6efa951e3f0651d19b0e2237520b7b";
-  //const jeffDevice = "15669ec91f32ec80c42addf68730189c92e1cdf8";
+  // const jeffDevice = "264b89476d6efa951e3f0651d19b0e2237520b7b";
+  // //const jeffDevice = "15669ec91f32ec80c42addf68730189c92e1cdf8";
   const partyNameInput = useRef();
   const [partyName, setPartyName] = useState();
   const [trackURI, setTrackURI] = useState();
@@ -69,9 +81,6 @@ function App() {
 
   const [sdk, setSdk] = useState();
 
-  //setting up the player
-  //const playerDiv = useRef();
-
   useEffect(() => {
     async function waitForSpotifyWebPlaybackSDKToLoad() {
       return new Promise((resolve) => {
@@ -84,21 +93,17 @@ function App() {
         }
       });
     }
-
     (async () => {
       const { Player } = await waitForSpotifyWebPlaybackSDKToLoad();
       console.log("The Web Playback SDK has loaded.");
-
       const sdk = new Player({
         name: "Play.all() Music Player",
-        volume: 1.0,
+        volume: 0.5,
         getOAuthToken: (callback) => {
           callback(token);
         },
       });
-
       setSdk(sdk);
-
       sdk.connect().then((success) => {
         if (success) {
           console.log(
@@ -106,7 +111,6 @@ function App() {
           );
         }
       });
-
       sdk.addListener("ready", ({ device_id }) => {
         console.log("Ready with Device ID", device_id);
         setDeviceId(device_id);
@@ -131,52 +135,31 @@ function App() {
           let data = documentSnapshot.data() ? documentSnapshot.data() : {};
           let dbData = { ...data };
           let dbPartyName = dbData["partyname"];
-          let dbpaused = dbData["state"]["paused"];
-          let dbposition = dbData["state"]["position"];
-          let dbURI = dbData["state"]["track_window"]["current_track"]["uri"];
-          let dbtrack =
-            dbData["state"]["track_window"]["current_track"]["name"];
-          let dbArt =
-            dbData["state"]["track_window"]["current_track"]["album"][
-              "images"
-            ][0]["url"];
-          let dbArtist =
-            dbData["state"]["track_window"]["current_track"]["artists"][0][
-              "name"
-            ];
           setdbPartyName(dbPartyName);
-          setdbPause(dbpaused);
-          setdbPosition(dbposition);
-          setdbURI(dbURI);
-          setdbTrack(dbtrack);
-          setdbAlbumart(dbArt);
-          setdbArtist(dbArtist);
+          if (dbData["state"]) {
+            let dbpaused = dbData["state"]["paused"];
+            let dbposition = dbData["state"]["position"];
+            let dbURI = dbData["state"]["track_window"]["current_track"]["uri"];
+            let dbtrack =
+              dbData["state"]["track_window"]["current_track"]["name"];
+            let dbArt =
+              dbData["state"]["track_window"]["current_track"]["album"][
+                "images"
+              ][0]["url"];
+            let dbArtist =
+              dbData["state"]["track_window"]["current_track"]["artists"][0][
+                "name"
+              ];
+            setdbPause(dbpaused);
+            setdbPosition(dbposition);
+            setdbURI(dbURI);
+            setdbTrack(dbtrack);
+            setdbAlbumart(dbArt);
+            setdbArtist(dbArtist);
+          }
         });
       }
     });
-
-    // db.ref(path).on("value", (snapshot) => {
-    //   let data = snapshot.val() ? snapshot.val() : {};
-    //   let dbData = { ...data };
-    //   let dbPartyName = dbData["partyname"];
-    //   let dbpaused = dbData["state"]["paused"];
-    //   let dbposition = dbData["state"]["position"];
-    //   let dbURI = dbData["state"]["track_window"]["current_track"]["uri"];
-    //   let dbtrack = dbData["state"]["track_window"]["current_track"]["name"];
-    //   let dbArt =
-    //     dbData["state"]["track_window"]["current_track"]["album"]["images"][0][
-    //       "url"
-    //     ];
-    //   let dbArtist =
-    //     dbData["state"]["track_window"]["current_track"]["artists"][0]["name"];
-    //   setdbPartyName(dbPartyName);
-    //   setdbPause(dbpaused);
-    //   setdbPosition(dbposition);
-    //   setdbURI(dbURI);
-    //   setdbTrack(dbtrack);
-    //   setdbAlbumart(dbArt);
-    //   setdbArtist(dbArtist);
-    // });
   });
 
   //sign in and get token
@@ -272,7 +255,16 @@ function App() {
           </div>
         </div>
       );
-    if (partyName && !trackURI) {
+    if (partyName) {
+      spotifyApi.getMyCurrentPlaybackState({}).then(
+        function (data) {
+          // Output items
+          console.log("Now Playing: ", data.body);
+        },
+        function (err) {
+          console.log("Something went wrong!", err);
+        }
+      );
       sdk.addListener("player_state_changed", (state) => {
         console.log("player state changed");
         setState(state);
@@ -281,7 +273,7 @@ function App() {
         // setPosition(state.position);
         // setTrackName(state.track_window.current_track.Name);
       });
-      console.log("SDK", sdk);
+
       db.collection("room").doc(deviceId).set({
         partyname: partyName,
         token: token,
@@ -294,43 +286,14 @@ function App() {
               Go to your Spotify and connect to Play.all() Music Player as a
               device and play!
             </p>
-          </header>
-          <br></br>
-          <button
-            onClick={() => {
-              setUsertype("none");
-            }}
-          >
-            Back
-          </button>
-        </div>
-      );
-    }
-    if (trackURI) {
-      console.log("SDK", sdk);
-      sdk.addListener("player_state_changed", (state) => {
-        console.log("player state changed");
-        setState(state);
-        setTrackURI(state.track_window.current_track.uri);
-        // setPause(state.paused);
-        // setPosition(state.position);
-        // setTrackName(state.track_window.current_track.Name);
-      });
-      return (
-        <div>
-          <header className="App-header">
-            <h1>Playing at {partyName}</h1>
             <p>Currently Playing...</p>
             <SpotifyPlayer2 uri={trackURI} theme={"black"} view={"list"} />
           </header>
           <br></br>
           <button
             onClick={() => {
-              sdk.disconnect();
               setUsertype("none");
-              // setPartyName("");
-              // setTrackURI("");
-              // setState("");
+              //setState("");
             }}
           >
             Back
@@ -338,7 +301,9 @@ function App() {
         </div>
       );
     }
+    /////LISTENER STARTS HERE///////////
   } else if (usertype === "listener") {
+    spotify.startUserPlayback();
     return (
       <div>
         <div className="App">
@@ -352,6 +317,25 @@ function App() {
               Track URI: {dbURI}
               <br></br>
             </p>
+
+            <SpotifyPlayer
+              offset={dbPosition}
+              token={token}
+              uris={[dbURI]}
+              autoPlay={true}
+              play={!dbPause}
+              name={"Play.All() Music Player"}
+              styles={{
+                bgColor: "#333",
+                color: "#fff",
+                loaderColor: "#fff",
+                sliderColor: "#1cb954",
+                savedColor: "#fff",
+                trackArtistColor: "#ccc",
+                trackNameColor: "#fff",
+              }}
+            />
+
             <button
               onClick={() => {
                 setUsertype("none");

@@ -12,7 +12,9 @@
     "react-script-hook": "^1.1.0",
     "react-scripts": "3.4.1",
     "react-spotify-player": "^1.0.4",
-    "react-spotify-web-playback": "^0.6.0"
+    "react-spotify-web-playback": "^0.6.0",
+    "spotify-web-api-node": "^4.0.0",
+    "spotify-web-sdk": "^0.6.1"
   },
   "scripts": {
     "start": "react-scripts start",
