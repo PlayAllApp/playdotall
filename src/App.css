@@ -36,3 +36,17 @@
     transform: rotate(360deg);
   }
 }
+
+.flexbox-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.flexbox-container button {
+  margin: 30px;
+  border: 1px solid violet;
+  border-radius: 25px;
+  padding: 30px;
+}
