@@ -23,6 +23,8 @@ function App() {
   const token = window.location.hash.slice(14).split("&")[0];
   const clientId = "f5b9df7177184266a5de8eb2c679b982";
   const redirectUri = "http://localhost:3000/";
+  //https://playdotall.web.app/
+  //http://localhost:3000/
   const scopes = [
     "streaming",
     "user-read-email",
@@ -35,11 +37,11 @@ function App() {
     "%20"
   )}&response_type=token&show_dialog=true`;
 
-  console.log("SPOTIFY", spotify);
-  spotify.init({ token: token });
-  spotify
-    .getCurrentUserProfile()
-    .then((profile) => console.log("PROFILE", profile));
+  // console.log("SPOTIFY", spotify);
+  // spotify.init({ token: token });
+  // spotify
+  //   .getCurrentUserProfile()
+  //   .then((profile) => console.log("PROFILE", profile));
 
   //load Spotify SDK script
   const [loading, error] = useScript({
@@ -47,11 +49,11 @@ function App() {
     onload: () => console.log("Script loaded"),
   });
 
-  const spotifyApi = new SpotifyWebApi({
-    clientId: clientId,
-    redirectUri: redirectUri,
-  });
-  spotifyApi.setAccessToken(token);
+  // const spotifyApi = new SpotifyWebApi({
+  //   clientId: clientId,
+  //   redirectUri: redirectUri,
+  // });
+  // spotifyApi.setAccessToken(token);
 
   //none || host || listener
   const [usertype, setUsertype] = useState("none");
@@ -115,6 +117,15 @@ function App() {
         console.log("Ready with Device ID", device_id);
         setDeviceId(device_id);
       });
+
+      sdk.addListener("player_state_changed", (state) => {
+        console.log("player state changed", state);
+        setState(state);
+        setTrackURI(state.track_window.current_track.uri);
+        // setPause(state.paused);
+        // setPosition(state.position);
+        // setTrackName(state.track_window.current_track.Name);
+      });
     })();
   }, []);
 
@@ -124,7 +135,7 @@ function App() {
         state: state,
       });
     }
-  });
+  }, [state]);
 
   useEffect(() => {
     const data = db.collection("room");
@@ -256,24 +267,15 @@ function App() {
         </div>
       );
     if (partyName) {
-      spotifyApi.getMyCurrentPlaybackState({}).then(
-        function (data) {
-          // Output items
-          console.log("Now Playing: ", data.body);
-        },
-        function (err) {
-          console.log("Something went wrong!", err);
-        }
-      );
-      sdk.addListener("player_state_changed", (state) => {
-        console.log("player state changed");
-        setState(state);
-        setTrackURI(state.track_window.current_track.uri);
-        // setPause(state.paused);
-        // setPosition(state.position);
-        // setTrackName(state.track_window.current_track.Name);
-      });
-
+      // spotifyApi.getMyCurrentPlaybackState({}).then(
+      //   function (data) {
+      //     // Output items
+      //     console.log("Now Playing: ", data.body);
+      //   },
+      //   function (err) {
+      //     console.log("Something went wrong!", err);
+      //   }
+      // );
       db.collection("room").doc(deviceId).set({
         partyname: partyName,
         token: token,
