@@ -104,53 +104,11 @@ function App() {
         console.log("Ready with Device ID", device_id);
         setDeviceId(device_id);
       });
-
-      // sdk.addListener("player_state_changed", (state) => {
-      //   setState(state);
-      //   // if (deviceId && state) {
-      //   //   db.collection("room").doc(deviceId).update({
-      //   //     //db.collection("room").doc(deviceId).update({
-      //   //     track: state.track_window.current_track.name,
-      //   //     artist: state.track_window.current_track.artists[0],
-      //   //     albumart: state.track_window.current_track.album.images[0].url,
-      //   //     uri: state.track_window.current_track.uri,
-      //   //     position: state.position,
-      //   //     pause: state.paused,
-      //   //   });
-      //   // }
-      //   // setNowPlaying({
-      //   //   track: state.track_window.current_track.name,
-      //   //   artist: state.track_window.current_track.artists[0],
-      //   //   albumart: state.track_window.current_track.album.images[0].url,
-      //   //   uri: state.track_window.current_track.uri,
-      //   //   position: state.position,
-      //   //   pause: state.paused,
-      //   // });
-      //   // spotifyWebApi.getMyCurrentPlaybackState().then((res) => {
-      //   //   console.log("getMyCurrentPlaybackState", res);
-      //   // });
-      // });
     })();
   }, []);
 
-  // useEffect(() => {
-  //   if (state) {
-  //     db.collection("room").doc(deviceId).update({
-  //       state: state,
-  //     });
-  //   }
-  // }, [state]);
-
-  // useEffect(() => {
-  //   if (deviceId && partyName) {
-  //     db.collection("room").doc(deviceId).add({
-  //       partyname: partyName,
-  //       token: token,
-  //     });
-  //   }
-  // }, []);
-
   useEffect(() => {
+    //many need to add a conditional here
     //get data from the DB
     const data = db.collection("room");
     data.get().then(function (querySnapshot) {
@@ -184,9 +142,9 @@ function App() {
         })
         .then((res) => console.log("pause", res));
     }
-    // if (dbPause) {
-    //   console.log("no one is currently playing any music");
-    // }
+    if (dbPause) {
+      console.log("music is paused");
+    }
   }
 
   //sign in and get token
@@ -211,11 +169,6 @@ function App() {
 
   //get listener type
   else if (usertype === "none") {
-    // if (dbPause) {
-    //   console.log("PAUSED");
-    //   spotifyWebApi.setAccessToken(token);
-    //   spotifyWebApi.pause().then((res) => console.log("pause", res));
-    // }
     return (
       <div>
         <p>Logged in as {userProf.display_name}</p>
@@ -340,6 +293,11 @@ function App() {
     }
   } else if (usertype === "listener") {
     playSong();
+    if (dbPause) {
+      console.log("PAUSED");
+      spotifyWebApi.setAccessToken(token);
+      spotifyWebApi.pause().then((res) => console.log("pause", res));
+    }
     return (
       <div>
         <div className="App">
@@ -353,25 +311,6 @@ function App() {
               Track URI: {dbURI}
               <br></br>
             </p>
-
-            {/* <SpotifyPlayer
-              offset={dbPosition}
-              token={token}
-              uris={[dbURI]}
-              autoPlay={true}
-              play={!dbPause}
-              name={"Play.All() Music Player"}
-              styles={{
-                bgColor: "#333",
-                color: "#fff",
-                loaderColor: "#fff",
-                sliderColor: "#1cb954",
-                savedColor: "#fff",
-                trackArtistColor: "#ccc",
-                trackNameColor: "#fff",
-              }}
-            /> */}
-
             <button
               onClick={() => {
                 setUsertype("none");
