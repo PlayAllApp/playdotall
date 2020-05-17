@@ -1,30 +1,20 @@
-//TO DISTINGUISH IF YOU ARE A HOSTER OR A LISTENER
-//Pull deviceid from the db, if your device id is not one of those, you are a listener
-//Change conditionals so the room is empty only if
-//Use firebase storage(?) not realtime DB
 //generate a unique room key and store all info in there
-// only creator can be a host
 //do you want to close room automatically or keep it idle?
 // you want to enable host to play select and play songs in the browser
-//change room is currently empty to song is paused
-//add a page where you can choose to be a listener or a host
 
 import React, { useRef, useState, useEffect } from "react";
 import useScript from "react-script-hook";
 import "./App.css";
-import SpotifyPlayer2 from "react-spotify-player";
-import SpotifyPlayer from "react-spotify-web-playback";
 import db from "./firebaseConfig";
-import SpotifyWebApi from "spotify-web-api-node";
-import * as spotify from "spotify-web-sdk";
+import Spotify from "spotify-web-api-js";
+const spotifyWebApi = new Spotify();
 
 function App() {
-  //getting the token
+  //replace with this in the future: https://github.com/spotify/web-api-auth-examples
   const token = window.location.hash.slice(14).split("&")[0];
   const clientId = "f5b9df7177184266a5de8eb2c679b982";
   const redirectUri = "http://localhost:3000/";
   //https://playdotall.web.app/
-  //http://localhost:3000/
   const scopes = [
     "streaming",
     "user-read-email",
@@ -37,42 +27,26 @@ function App() {
     "%20"
   )}&response_type=token&show_dialog=true`;
 
-  // console.log("SPOTIFY", spotify);
-  // spotify.init({ token: token });
-  // spotify
-  //   .getCurrentUserProfile()
-  //   .then((profile) => console.log("PROFILE", profile));
-
   //load Spotify SDK script
   const [loading, error] = useScript({
     src: "https://sdk.scdn.co/spotify-player.js",
     onload: () => console.log("Script loaded"),
   });
 
-  // const spotifyApi = new SpotifyWebApi({
-  //   clientId: clientId,
-  //   redirectUri: redirectUri,
-  // });
-  // spotifyApi.setAccessToken(token);
-
-  //none || host || listener
-  const [usertype, setUsertype] = useState("none");
-
+  //user profile
+  const [userProf, setUserProf] = useState({});
   //get device Id of signed in user
   const [deviceId, setDeviceId] = useState();
-
-  //getting room imformation for Jeff
-  // const jeffDevice = "264b89476d6efa951e3f0651d19b0e2237520b7b";
-  // //const jeffDevice = "15669ec91f32ec80c42addf68730189c92e1cdf8";
+  //none || host || listener
+  const [usertype, setUsertype] = useState("none");
+  //party name
   const partyNameInput = useRef();
   const [partyName, setPartyName] = useState();
-  const [trackURI, setTrackURI] = useState();
-  const [trackName, setTrackName] = useState();
-  const [pause, setPause] = useState();
-  const [position, setPosition] = useState();
-  const [state, setState] = useState();
+  const [sdk, setSdk] = useState();
+  //state
+  const [state, setState] = useState({});
 
-  //JEFFS DB DATA
+  //data from the db
   const [dbPartyName, setdbPartyName] = useState();
   const [dbPause, setdbPause] = useState();
   const [dbPosition, setdbPosition] = useState();
@@ -81,7 +55,20 @@ function App() {
   const [dbAlbumart, setdbAlbumart] = useState();
   const [dbArtist, setdbArtist] = useState();
 
-  const [sdk, setSdk] = useState();
+  useEffect(() => {
+    if (token) {
+      spotifyWebApi.setAccessToken(token);
+      //get information about the user
+      spotifyWebApi.getMe().then((res) => {
+        setUserProf({
+          id: res.id,
+          display_name: res.display_name,
+          email: res.email,
+          // images: res.images[0].url,
+        });
+      });
+    }
+  }, []);
 
   useEffect(() => {
     async function waitForSpotifyWebPlaybackSDKToLoad() {
@@ -118,60 +105,89 @@ function App() {
         setDeviceId(device_id);
       });
 
-      sdk.addListener("player_state_changed", (state) => {
-        console.log("player state changed", state);
-        setState(state);
-        setTrackURI(state.track_window.current_track.uri);
-        // setPause(state.paused);
-        // setPosition(state.position);
-        // setTrackName(state.track_window.current_track.Name);
-      });
+      // sdk.addListener("player_state_changed", (state) => {
+      //   setState(state);
+      //   // if (deviceId && state) {
+      //   //   db.collection("room").doc(deviceId).update({
+      //   //     //db.collection("room").doc(deviceId).update({
+      //   //     track: state.track_window.current_track.name,
+      //   //     artist: state.track_window.current_track.artists[0],
+      //   //     albumart: state.track_window.current_track.album.images[0].url,
+      //   //     uri: state.track_window.current_track.uri,
+      //   //     position: state.position,
+      //   //     pause: state.paused,
+      //   //   });
+      //   // }
+      //   // setNowPlaying({
+      //   //   track: state.track_window.current_track.name,
+      //   //   artist: state.track_window.current_track.artists[0],
+      //   //   albumart: state.track_window.current_track.album.images[0].url,
+      //   //   uri: state.track_window.current_track.uri,
+      //   //   position: state.position,
+      //   //   pause: state.paused,
+      //   // });
+      //   // spotifyWebApi.getMyCurrentPlaybackState().then((res) => {
+      //   //   console.log("getMyCurrentPlaybackState", res);
+      //   // });
+      // });
     })();
   }, []);
 
-  useEffect(() => {
-    if (state) {
-      db.collection("room").doc(deviceId).update({
-        state: state,
-      });
-    }
-  }, [state]);
+  // useEffect(() => {
+  //   if (state) {
+  //     db.collection("room").doc(deviceId).update({
+  //       state: state,
+  //     });
+  //   }
+  // }, [state]);
+
+  // useEffect(() => {
+  //   if (deviceId && partyName) {
+  //     db.collection("room").doc(deviceId).add({
+  //       partyname: partyName,
+  //       token: token,
+  //     });
+  //   }
+  // }, []);
 
   useEffect(() => {
+    //get data from the DB
     const data = db.collection("room");
     data.get().then(function (querySnapshot) {
-      const rooms = [];
-      if (querySnapshot.size > 0) {
-        querySnapshot.docs.forEach((documentSnapshot) => {
-          let data = documentSnapshot.data() ? documentSnapshot.data() : {};
-          let dbData = { ...data };
-          let dbPartyName = dbData["partyname"];
-          setdbPartyName(dbPartyName);
-          if (dbData["state"]) {
-            let dbpaused = dbData["state"]["paused"];
-            let dbposition = dbData["state"]["position"];
-            let dbURI = dbData["state"]["track_window"]["current_track"]["uri"];
-            let dbtrack =
-              dbData["state"]["track_window"]["current_track"]["name"];
-            let dbArt =
-              dbData["state"]["track_window"]["current_track"]["album"][
-                "images"
-              ][0]["url"];
-            let dbArtist =
-              dbData["state"]["track_window"]["current_track"]["artists"][0][
-                "name"
-              ];
-            setdbPause(dbpaused);
-            setdbPosition(dbposition);
-            setdbURI(dbURI);
-            setdbTrack(dbtrack);
-            setdbAlbumart(dbArt);
-            setdbArtist(dbArtist);
-          }
-        });
-      }
+      querySnapshot.docs.forEach((documentSnapshot) => {
+        //documentSnapshot.data() is each document so each room
+        let data = documentSnapshot.data() ? documentSnapshot.data() : {};
+        let dbData = { ...data };
+        setdbPause(dbData.pause);
+        setdbPosition(dbData.position);
+        setdbURI(dbData.uri);
+        setdbTrack(dbData.track);
+        setdbAlbumart(dbData.albumart);
+        setdbArtist(dbData.artist.name);
+        setdbPartyName(dbData.partyname);
+      });
     });
-  });
+  }, []);
+
+  function playSong() {
+    if (!dbPause) {
+      console.log("DEVICE ID & TOKEN", deviceId, token);
+      console.log("DBURI", dbURI);
+      console.log("DBURI", dbPosition);
+      console.log("DBPause", dbPause);
+      spotifyWebApi.setAccessToken(token);
+      spotifyWebApi
+        .play({
+          device_id: deviceId,
+          uris: [dbURI],
+          position_ms: dbPosition,
+        })
+        .then((res) => console.log("pause", res));
+    }
+    // if (dbPause) {
+    //   console.log("no one is currently playing any music");
+    // }
+  }
 
   //sign in and get token
   if (!token) {
@@ -194,40 +210,44 @@ function App() {
   }
 
   //get listener type
-  else if (token && usertype === "none") {
+  else if (usertype === "none") {
+    // if (dbPause) {
+    //   console.log("PAUSED");
+    //   spotifyWebApi.setAccessToken(token);
+    //   spotifyWebApi.pause().then((res) => console.log("pause", res));
+    // }
     return (
       <div>
-        <div className="App">
-          <header className="App-header">
-            <div className="flexbox-container">
-              <div>
-                <h1>Join a room and listen to music</h1>
-                <div
-                  className="room"
-                  onClick={() => {
-                    setUsertype("listener");
-                  }}
-                >
-                  <p>{dbPartyName} is currently playing...</p>
-                  <img src={dbAlbumart}></img>
-                  <p>
-                    {dbTrack} by {dbArtist}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h1>Make a room and share music</h1>
-                <button
-                  onClick={() => {
-                    setUsertype("host");
-                  }}
-                >
-                  Share Music
-                </button>
-              </div>
+        <p>Logged in as {userProf.display_name}</p>
+        <div className="flexbox-container">
+          <div>
+            <h1>Join a room and listen to music</h1>
+            <div
+              className="room"
+              onClick={() => {
+                setUsertype("listener");
+                userProf["type"] = "listener";
+              }}
+            >
+              <p>{dbPartyName} is currently playing...</p>
+              <img src={dbAlbumart}></img>
+              <p>
+                {dbTrack} by {dbArtist}
+              </p>
             </div>
-          </header>
+          </div>
+
+          <div>
+            <h1>Make a room and share music</h1>
+            <button
+              onClick={() => {
+                setUsertype("host");
+                userProf["type"] = "host";
+              }}
+            >
+              Share Music
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -235,51 +255,67 @@ function App() {
     if (!partyName)
       return (
         <div>
-          <div className="App">
-            <header className="App-header">
-              <p>I'm a host</p>
-              <div className="room-container"></div>
-              <label htmlFor="name">Name your PARTAY</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                required
-                ref={partyNameInput}
-              ></input>
-              <button
-                onClick={() => {
-                  setPartyName(partyNameInput.current.value);
-                }}
-              >
-                Start a party!
-              </button>
-              <br></br>
-              <button
-                onClick={() => {
-                  setUsertype("none");
-                }}
-              >
-                Back
-              </button>
-            </header>
-          </div>
+          <p>I'm a host</p>
+          <div className="room-container"></div>
+          <label htmlFor="name">Name your PARTAY</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            ref={partyNameInput}
+          ></input>
+          <button
+            onClick={() => {
+              setPartyName(partyNameInput.current.value);
+            }}
+          >
+            Start a party!
+          </button>
+          <br></br>
+          <button
+            onClick={() => {
+              setUsertype("none");
+            }}
+          >
+            Back
+          </button>
         </div>
       );
     if (partyName) {
-      // spotifyApi.getMyCurrentPlaybackState({}).then(
-      //   function (data) {
-      //     // Output items
-      //     console.log("Now Playing: ", data.body);
-      //   },
-      //   function (err) {
-      //     console.log("Something went wrong!", err);
-      //   }
-      // );
-      db.collection("room").doc(deviceId).set({
-        partyname: partyName,
-        token: token,
+      if (deviceId) {
+        db.collection("room").doc(deviceId).set({
+          partyname: partyName,
+          token: token,
+        });
+      }
+
+      sdk.addListener("player_state_changed", (state) => {
+        setState(state);
+        if (deviceId && state) {
+          db.collection("room").doc(deviceId).update({
+            //db.collection("room").doc(deviceId).update({
+            track: state.track_window.current_track.name,
+            artist: state.track_window.current_track.artists[0],
+            albumart: state.track_window.current_track.album.images[0].url,
+            uri: state.track_window.current_track.uri,
+            position: state.position,
+            pause: state.paused,
+          });
+        }
+        // setNowPlaying({
+        //   track: state.track_window.current_track.name,
+        //   artist: state.track_window.current_track.artists[0],
+        //   albumart: state.track_window.current_track.album.images[0].url,
+        //   uri: state.track_window.current_track.uri,
+        //   position: state.position,
+        //   pause: state.paused,
+        // });
+        // spotifyWebApi.getMyCurrentPlaybackState().then((res) => {
+        //   console.log("getMyCurrentPlaybackState", res);
+        // });
       });
+
       return (
         <div>
           <header className="App-header">
@@ -289,7 +325,6 @@ function App() {
               device and play!
             </p>
             <p>Currently Playing...</p>
-            <SpotifyPlayer2 uri={trackURI} theme={"black"} view={"list"} />
           </header>
           <br></br>
           <button
@@ -303,9 +338,8 @@ function App() {
         </div>
       );
     }
-    /////LISTENER STARTS HERE///////////
   } else if (usertype === "listener") {
-    spotify.startUserPlayback();
+    playSong();
     return (
       <div>
         <div className="App">
@@ -320,7 +354,7 @@ function App() {
               <br></br>
             </p>
 
-            <SpotifyPlayer
+            {/* <SpotifyPlayer
               offset={dbPosition}
               token={token}
               uris={[dbURI]}
@@ -336,7 +370,7 @@ function App() {
                 trackArtistColor: "#ccc",
                 trackNameColor: "#fff",
               }}
-            />
+            /> */}
 
             <button
               onClick={() => {
@@ -352,134 +386,142 @@ function App() {
   } else {
     console.log("ERR");
   }
-
-  //   if (!deviceId) {
-  //     return (
-  //       <div ref={playerDiv}>
-  //         <header className="App-header">
-  //           <p>Loading...</p>
-  //         </header>
-  //       </div>
-  //     );
-  //   }
-
-  //   //IF YOU ARE JEFF
-  //   //if (deviceId === jeffDevice && token && !partyName && !trackURI) {
-  //   if (token && !partyName && !trackURI) {
-  //     return (
-  //       <div ref={playerDiv}>
-  //         <header className="App-header">
-  //           <p>
-  //             Welcome to Play.All()! Play some music from your Spotify and share
-  //             it with the world or join a room.
-  //           </p>
-  //           <div className="room-container"></div>
-  //           <label htmlFor="name">Name your PARTAY</label>
-  //           <input
-  //             type="text"
-  //             id="name"
-  //             name="name"
-  //             required
-  //             ref={partyNameInput}
-  //           ></input>
-  //           <button
-  //             onClick={() => {
-  //               setPartyName(partyNameInput.current.value);
-  //             }}
-  //           >
-  //             Start a party!
-  //           </button>
-  //         </header>
-  //       </div>
-  //     );
-  //     // } else if (deviceId === jeffDevice && token && partyName && !trackURI) {
-  //   } else if (token && partyName && !trackURI) {
-  //     db.collection("room").doc(deviceId).set({
-  //       partyname: partyName,
-  //       token: token,
-  //     });
-  //     return (
-  //       <div ref={playerDiv}>
-  //         <header className="App-header">
-  //           <h1>Playing at {partyName}</h1>
-  //           <p>
-  //             Go to your Spotify and connect to Play.all() Music Player as a
-  //             device and play!
-  //           </p>
-  //         </header>
-  //       </div>
-  //     );
-  //     // } else if (
-  //     //   deviceId === jeffDevice &&
-  //     //   token &&
-  //     //   partyName &&
-  //     //   trackURI &&
-  //     //   deviceId
-  //     // ) {
-  //   } else if (token && partyName && trackURI && deviceId) {
-  //     return (
-  //       <div ref={playerDiv}>
-  //         <header className="App-header">
-  //           <h1>Playing at {partyName}</h1>
-  //           <p>Currently Playing...</p>
-  //           <SpotifyPlayer2 uri={trackURI} theme={"black"} view={"list"} />
-  //         </header>
-  //       </div>
-  //     );
-  //   }
-
-  //   //IF YOU ARE NOT JEFF
-  //   // else if (deviceId !== jeffDevice && token) {
-  //   //   if (dbPause) {
-  //   //     return (
-  //   //       <div ref={playerDiv}>
-  //   //         <header className="App-header">
-  //   //           <h1>Room is currently empty</h1>
-  //   //         </header>
-  //   //       </div>
-  //   //     );
-  //   //   }
-  //   //   console.log("PAUSED?", dbPause, "POSITION: ", dbPosition, "dbURI: ", dbURI);
-  //   //   return (
-  //   //     <div ref={playerDiv}>
-  //   //       <header className="App-header">
-  //   //         <h1>Playing at {dbPartyName}</h1>
-  //   //         <p>Currently Playing...</p>
-  //   //         <img src={dbAlbumart}></img>
-  //   //         <p>
-  //   //           {dbTrack} by {dbArtist}
-  //   //         </p>
-  //   //         <p>
-  //   //           Paused? {!dbPause}
-  //   //           <br></br>
-  //   //           Position: {dbPosition}
-  //   //           <br></br>
-  //   //           Track URI: {dbURI}
-  //   //           <br></br>
-  //   //         </p>
-  //   //         <SpotifyPlayer
-  //   //           offset={dbPosition}
-  //   //           token={token}
-  //   //           uris={[dbURI]}
-  //   //           autoPlay={true}
-  //   //           play={!dbPause}
-  //   //           name={"Play.All() Music Player"}
-  //   //           styles={{
-  //   //             bgColor: "#333",
-  //   //             color: "#fff",
-  //   //             loaderColor: "#fff",
-  //   //             sliderColor: "#1cb954",
-  //   //             savedColor: "#fff",
-  //   //             trackArtistColor: "#ccc",
-  //   //             trackNameColor: "#fff",
-  //   //           }}
-  //   //         />
-  //   //       </header>
-  //   //     </div>
-  //   //   );
-  //   //   } else {
-  //   //     alert("Oh no!");
-  //   //   }
 }
 
 export default App;
+
+//getting room imformation for Jeff
+// const jeffDevice = "264b89476d6efa951e3f0651d19b0e2237520b7b";
+// //const jeffDevice = "15669ec91f32ec80c42addf68730189c92e1cdf8";
+// const [trackURI, setTrackURI] = useState();
+// const [trackName, setTrackName] = useState();
+// const [pause, setPause] = useState();
+// const [position, setPosition] = useState();
+
+//   if (!deviceId) {
+//     return (
+//       <div ref={playerDiv}>
+//         <header className="App-header">
+//           <p>Loading...</p>
+//         </header>
+//       </div>
+//     );
+//   }
+
+//   //IF YOU ARE JEFF
+//   //if (deviceId === jeffDevice && token && !partyName && !trackURI) {
+//   if (token && !partyName && !trackURI) {
+//     return (
+//       <div ref={playerDiv}>
+//         <header className="App-header">
+//           <p>
+//             Welcome to Play.All()! Play some music from your Spotify and share
+//             it with the world or join a room.
+//           </p>
+//           <div className="room-container"></div>
+//           <label htmlFor="name">Name your PARTAY</label>
+//           <input
+//             type="text"
+//             id="name"
+//             name="name"
+//             required
+//             ref={partyNameInput}
+//           ></input>
+//           <button
+//             onClick={() => {
+//               setPartyName(partyNameInput.current.value);
+//             }}
+//           >
+//             Start a party!
+//           </button>
+//         </header>
+//       </div>
+//     );
+//     // } else if (deviceId === jeffDevice && token && partyName && !trackURI) {
+//   } else if (token && partyName && !trackURI) {
+//     db.collection("room").doc(deviceId).set({
+//       partyname: partyName,
+//       token: token,
+//     });
+//     return (
+//       <div ref={playerDiv}>
+//         <header className="App-header">
+//           <h1>Playing at {partyName}</h1>
+//           <p>
+//             Go to your Spotify and connect to Play.all() Music Player as a
+//             device and play!
+//           </p>
+//         </header>
+//       </div>
+//     );
+//     // } else if (
+//     //   deviceId === jeffDevice &&
+//     //   token &&
+//     //   partyName &&
+//     //   trackURI &&
+//     //   deviceId
+//     // ) {
+//   } else if (token && partyName && trackURI && deviceId) {
+//     return (
+//       <div ref={playerDiv}>
+//         <header className="App-header">
+//           <h1>Playing at {partyName}</h1>
+//           <p>Currently Playing...</p>
+//           <SpotifyPlayer2 uri={trackURI} theme={"black"} view={"list"} />
+//         </header>
+//       </div>
+//     );
+//   }
+
+//   //IF YOU ARE NOT JEFF
+//   // else if (deviceId !== jeffDevice && token) {
+//   //   if (dbPause) {
+//   //     return (
+//   //       <div ref={playerDiv}>
+//   //         <header className="App-header">
+//   //           <h1>Room is currently empty</h1>
+//   //         </header>
+//   //       </div>
+//   //     );
+//   //   }
+//   //   console.log("PAUSED?", dbPause, "POSITION: ", dbPosition, "dbURI: ", dbURI);
+//   //   return (
+//   //     <div ref={playerDiv}>
+//   //       <header className="App-header">
+//   //         <h1>Playing at {dbPartyName}</h1>
+//   //         <p>Currently Playing...</p>
+//   //         <img src={dbAlbumart}></img>
+//   //         <p>
+//   //           {dbTrack} by {dbArtist}
+//   //         </p>
+//   //         <p>
+//   //           Paused? {!dbPause}
+//   //           <br></br>
+//   //           Position: {dbPosition}
+//   //           <br></br>
+//   //           Track URI: {dbURI}
+//   //           <br></br>
+//   //         </p>
+//   //         <SpotifyPlayer
+//   //           offset={dbPosition}
+//   //           token={token}
+//   //           uris={[dbURI]}
+//   //           autoPlay={true}
+//   //           play={!dbPause}
+//   //           name={"Play.All() Music Player"}
+//   //           styles={{
+//   //             bgColor: "#333",
+//   //             color: "#fff",
+//   //             loaderColor: "#fff",
+//   //             sliderColor: "#1cb954",
+//   //             savedColor: "#fff",
+//   //             trackArtistColor: "#ccc",
+//   //             trackNameColor: "#fff",
+//   //           }}
+//   //         />
+//   //       </header>
+//   //     </div>
+//   //   );
+//   //   } else {
+//   //     alert("Oh no!");
+//   //   }
