@@ -55,6 +55,46 @@ function App() {
   const [dbAlbumart, setdbAlbumart] = useState();
   const [dbArtist, setdbArtist] = useState();
 
+  //search states + url
+  const SPOTIFY_API_URL = "https://api.spotify.com/v1";
+  const [sResults, setSResults] = useState([]); // may need to put a loading time thing for the results since it takes a little time
+  const [query, setQuery] = useState(""); // to go forward: figure out how to display the songs/artists when searching
+  //when clicking on the song/artist, have that song go into the player
+  const [resultsToggle, setResultsToggle] = useState(false);
+
+  const queryHandler = (e) => {
+    setQuery(e.target.value);
+    searchMusic(query);
+  };
+
+  const searchHandler = (e) => {
+    e.preventDefault();
+    // searchMusic(query)
+    setResultsToggle(true);
+  };
+
+  const errHandler = (err) => {
+    console.log("Unable to load song");
+    console.log(err);
+  };
+
+  const searchMusic = (q) => {
+    return fetch(`${SPOTIFY_API_URL}/search?q=${q}&type=track&limit=10`, {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        setSResults(res.tracks.items);
+
+        // console.log(res.tracks.items, "IM A RES??")
+        console.log(sResults, "IM THE SEARCH RESULTS");
+      })
+      .catch(errHandler);
+  };
+  //end of search logic
+
   useEffect(() => {
     if (token) {
       spotifyWebApi.setAccessToken(token);
@@ -142,29 +182,9 @@ function App() {
           uris: [dbURI],
           position_ms: dbPosition,
         })
-        .then((res) => console.log("pause", res));
-    }
-    if (dbPause) {
-      console.log("music is paused");
+        .then((res) => console.log(res));
     }
   }
-
-  // const [playSong, setPlaySong] = useState(false);
-  // useEffect(() => {
-  //   if (usertype === "listener" && playSong) {
-  //     console.log("DEVICE ID & TOKEN", deviceId, token);
-  //     console.log("DBURI", dbURI);
-  //     console.log("DBURI", dbPosition);
-  //     console.log("DBPause", dbPause);
-  //     spotifyWebApi.setAccessToken(token);
-  //     spotifyWebApi.play({
-  //       device_id: deviceId,
-  //       uris: [dbURI],
-  //       position_ms: dbPosition,
-  //     });
-  //     // .then((res) => console.log("pause", res));
-  //   }
-  // }, [dbURI, dbPosition, dbPause]);
 
   //sign in and get token
   if (!token) {
@@ -292,11 +312,35 @@ function App() {
         <div>
           <header className="App-header">
             <h1>Playing at {partyName}</h1>
-            <p>
+            <form onSubmit={searchHandler}>
+              <input
+                type="text"
+                onChange={queryHandler}
+                placeholder="search for a song"
+              ></input>
+              <input type="submit" value="search"></input>
+            </form>
+            <div>
+              {sResults !== [] &&
+                resultsToggle &&
+                sResults.map((track) => (
+                  <img
+                    src={track.album.images[2].url}
+                    onClick={() => {
+                      spotifyWebApi.setAccessToken(token);
+                      spotifyWebApi.play({
+                        device_id: deviceId,
+                        uris: [track.uri],
+                      });
+                    }}
+                  ></img>
+                ))}
+            </div>
+            {/* <p>
               Go to your Spotify and connect to Play.all() Music Player as a
               device and play!
             </p>
-            <p>Currently Playing...</p>
+            <p>Currently Playing...</p> */}
           </header>
           <br></br>
           <button
@@ -313,11 +357,14 @@ function App() {
   } else if (usertype === "listener") {
     //setPlaySong(true);
     playSong();
-    // if (dbPause) {
-    //   console.log("PAUSED");
-    //   spotifyWebApi.setAccessToken(token);
-    //   spotifyWebApi.pause().then((res) => console.log("pause", res));
-    // }
+    if (dbPause) {
+      console.log("PAUSED");
+      // spotifyWebApi.setAccessToken(token);
+      // spotifyWebApi.pause().then((res) => console.log("pause", res));
+    } else if (!dbPause) {
+      console.log("IM NOT PAUSED YOU FOO");
+    }
+
     return (
       <div>
         <div className="App">
