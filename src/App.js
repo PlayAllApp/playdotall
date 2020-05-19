@@ -110,6 +110,7 @@ function App() {
   useEffect(() => {
     //many need to add a conditional here
     //get data from the DB
+    //if (deviceId && state) {
     const data = db.collection("room");
     data.get().then(function (querySnapshot) {
       querySnapshot.docs.forEach((documentSnapshot) => {
@@ -125,6 +126,7 @@ function App() {
         setdbPartyName(dbData.partyname);
       });
     });
+    // }
   }, []);
 
   function playSong() {
@@ -146,6 +148,23 @@ function App() {
       console.log("music is paused");
     }
   }
+
+  // const [playSong, setPlaySong] = useState(false);
+  // useEffect(() => {
+  //   if (usertype === "listener" && playSong) {
+  //     console.log("DEVICE ID & TOKEN", deviceId, token);
+  //     console.log("DBURI", dbURI);
+  //     console.log("DBURI", dbPosition);
+  //     console.log("DBPause", dbPause);
+  //     spotifyWebApi.setAccessToken(token);
+  //     spotifyWebApi.play({
+  //       device_id: deviceId,
+  //       uris: [dbURI],
+  //       position_ms: dbPosition,
+  //     });
+  //     // .then((res) => console.log("pause", res));
+  //   }
+  // }, [dbURI, dbPosition, dbPause]);
 
   //sign in and get token
   if (!token) {
@@ -292,12 +311,13 @@ function App() {
       );
     }
   } else if (usertype === "listener") {
+    //setPlaySong(true);
     playSong();
-    if (dbPause) {
-      console.log("PAUSED");
-      spotifyWebApi.setAccessToken(token);
-      spotifyWebApi.pause().then((res) => console.log("pause", res));
-    }
+    // if (dbPause) {
+    //   console.log("PAUSED");
+    //   spotifyWebApi.setAccessToken(token);
+    //   spotifyWebApi.pause().then((res) => console.log("pause", res));
+    // }
     return (
       <div>
         <div className="App">
@@ -314,6 +334,7 @@ function App() {
             <button
               onClick={() => {
                 setUsertype("none");
+                //setPlaySong(false);
               }}
             >
               Back
