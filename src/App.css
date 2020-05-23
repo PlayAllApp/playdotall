@@ -44,6 +44,17 @@
   align-items: center;
 }
 
+.flexbox-container-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.flexbox-container-row button {
+  margin: 20px;
+}
+
 .flexbox-container button {
   margin: 30px;
   border: 1px solid violet;
@@ -54,4 +65,33 @@
 .room {
   border: 1px solid blue;
   padding: 10px;
+}
+
+.search-result {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.search-result img {
+  margin: 3px;
+}
+
+.active-rooms-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.active-room {
+  width: 25vw;
+  margin: 5px;
+}
+
+.active-room img {
+  width: 100%;
+}
+
+.active-room p {
+  font-size: 12px;
 }

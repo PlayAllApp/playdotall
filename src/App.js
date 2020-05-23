@@ -14,6 +14,7 @@ function App() {
   const token = window.location.hash.slice(14).split("&")[0];
   const clientId = "f5b9df7177184266a5de8eb2c679b982";
   const redirectUri = "http://localhost:3000/";
+  //http://localhost:3000/
   //https://playdotall.web.app/
   const scopes = [
     "streaming",
@@ -42,18 +43,13 @@ function App() {
   //party name
   const partyNameInput = useRef();
   const [partyName, setPartyName] = useState();
-  const [sdk, setSdk] = useState();
-  //state
-  const [state, setState] = useState({});
 
-  //data from the db
-  const [dbPartyName, setdbPartyName] = useState();
-  const [dbPause, setdbPause] = useState();
-  const [dbPosition, setdbPosition] = useState();
-  const [dbURI, setdbURI] = useState();
-  const [dbTrack, setdbTrack] = useState();
-  const [dbAlbumart, setdbAlbumart] = useState();
-  const [dbArtist, setdbArtist] = useState();
+  //state of song
+  const [state, setState] = useState();
+  const [uri, setURI] = useState();
+  const [paused, setPaused] = useState();
+  const [position, setPosition] = useState();
+  const [sdk, setSdk] = useState();
 
   //search states + url
   const SPOTIFY_API_URL = "https://api.spotify.com/v1";
@@ -79,7 +75,7 @@ function App() {
   };
 
   const searchMusic = (q) => {
-    return fetch(`${SPOTIFY_API_URL}/search?q=${q}&type=track&limit=10`, {
+    return fetch(`${SPOTIFY_API_URL}/search?q=${q}&type=track&limit=30`, {
       headers: {
         Authorization: "Bearer " + token,
       },
@@ -144,47 +140,114 @@ function App() {
         console.log("Ready with Device ID", device_id);
         setDeviceId(device_id);
       });
+
+      sdk.addListener("player_state_changed", (state) => {
+        setState(state);
+        setPaused(state.paused);
+        setURI(state.track_window.current_track.uri);
+      });
     })();
   }, []);
 
-  useEffect(() => {
-    //many need to add a conditional here
-    //get data from the DB
-    //if (deviceId && state) {
-    const data = db.collection("room");
-    data.get().then(function (querySnapshot) {
-      querySnapshot.docs.forEach((documentSnapshot) => {
-        //documentSnapshot.data() is each document so each room
-        let data = documentSnapshot.data() ? documentSnapshot.data() : {};
-        let dbData = { ...data };
-        setdbPause(dbData.pause);
-        setdbPosition(dbData.position);
-        setdbURI(dbData.uri);
-        setdbTrack(dbData.track);
-        setdbAlbumart(dbData.albumart);
-        setdbArtist(dbData.artist.name);
-        setdbPartyName(dbData.partyname);
-      });
+  if (sdk) {
+    sdk.addListener("player_state_changed", (state) => {
+      setPosition(state.position);
     });
-    // }
+  }
+
+  const [listenerJoined, setListenerJoined] = useState(0);
+  useEffect(() => {
+    console.log("STATE && DEVICEID", state, deviceId);
+    if (state && usertype === "host") {
+      console.log("URI AND PAUSED", uri, paused);
+      db.collection("room").doc(deviceId).set({
+        partyname: partyName,
+        token: token,
+        track: state.track_window.current_track.name,
+        artist: state.track_window.current_track.artists[0],
+        albumart: state.track_window.current_track.album.images[0].url,
+        uri: state.track_window.current_track.uri,
+        position: state.position,
+        pause: state.paused,
+      });
+    }
+  }, [uri, paused]);
+
+  useEffect(() => {
+    if (usertype === "host") {
+      spotifyWebApi.setAccessToken(token);
+      const interval = setInterval(() => {
+        spotifyWebApi.getMyCurrentPlayingTrack().then((data) => {
+          let position = data.progress_ms;
+          setPosition(position);
+          console.log("I AMMMMMMMMMMMMMMM A POSITION", position);
+        });
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  });
+
+  //COME BACK TO FIGURE OUT
+  useEffect(() => {
+    if (state && usertype === "host" && deviceId) {
+      console.log(listenerJoined, "IM LISTENINGGGGG");
+      console.log("I'M POSITION", position);
+      db.collection("room").doc(deviceId).update({
+        position: position,
+      });
+      console.log("IM STILL LISTENINGERERS");
+    }
+  }, [position]);
+
+  //READING FROM DB
+  const [activeRooms, setActiveRooms] = useState([]);
+  useEffect(() => {
+    const data = db.collection("room");
+    data.onSnapshot((snapshot) => {
+      const activeRooms = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setActiveRooms(activeRooms);
+    });
   }, []);
 
-  function playSong() {
-    if (!dbPause) {
-      console.log("DEVICE ID & TOKEN", deviceId, token);
-      console.log("DBURI", dbURI);
-      console.log("DBURI", dbPosition);
-      console.log("DBPause", dbPause);
-      spotifyWebApi.setAccessToken(token);
-      spotifyWebApi
-        .play({
-          device_id: deviceId,
-          uris: [dbURI],
-          position_ms: dbPosition,
-        })
-        .then((res) => console.log(res));
+  const [clickedRoom, setClickedRoom] = useState();
+
+  // if (activeRooms) {
+  //   let activeRoomURI = activeRooms[0].uri;
+  //   let activeRoomPause = activeRooms[0].pause;
+  // }
+  useEffect(() => {
+    if (usertype === "listener") {
+      console.log("I AM ACTIVE ROOMS URI", activeRooms[0].uri);
+      console.log("I AM ACTIVE ROOMS Pause", activeRooms[0].pause);
+      const roomArr = activeRooms.filter((room) => {
+        return room.id === clickedRoom;
+      });
+      const room = roomArr[0];
+
+      const trackURI = room.uri;
+      const trackPosition = room.position;
+      const trackPaused = room.pause;
+
+      if (!trackPaused) {
+        spotifyWebApi.setAccessToken(token);
+        spotifyWebApi
+          .play({
+            device_id: deviceId,
+            uris: [trackURI],
+            position_ms: trackPosition,
+          })
+          .then((res) => console.log(res));
+      }
+
+      if (trackPaused) {
+        spotifyWebApi.pause().then((res) => console.log("pause", res));
+      }
     }
-  }
+  }, [usertype, activeRooms]);
 
   //sign in and get token
   if (!token) {
@@ -210,36 +273,46 @@ function App() {
   else if (usertype === "none") {
     return (
       <div>
-        <p>Logged in as {userProf.display_name}</p>
-        <div className="flexbox-container">
-          <div>
-            <h1>Join a room and listen to music</h1>
-            <div
-              className="room"
-              onClick={() => {
-                setUsertype("listener");
-                userProf["type"] = "listener";
-              }}
-            >
-              <p>{dbPartyName} is currently playing...</p>
-              <img src={dbAlbumart}></img>
-              <p>
-                {dbTrack} by {dbArtist}
-              </p>
-            </div>
-          </div>
+        <div className="App">
+          <header className="App-header">
+            <p>Logged in as {userProf.display_name}</p>
+            <div className="flexbox-container">
+              <div>
+                <h1>Join a room and listen to music</h1>
+                <div className="active-rooms-container">
+                  {activeRooms.map((room) => (
+                    <div
+                      className="active-room"
+                      key={room.id}
+                      id={room.id}
+                      onClick={(e) => {
+                        setUsertype("listener");
+                        setClickedRoom(e.currentTarget.id);
+                        setListenerJoined(listenerJoined + 1);
+                      }}
+                    >
+                      <p>
+                        {room.partyname} is now playing {room.track}
+                      </p>
+                      <img src={room.albumart}></img>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          <div>
-            <h1>Make a room and share music</h1>
-            <button
-              onClick={() => {
-                setUsertype("host");
-                userProf["type"] = "host";
-              }}
-            >
-              Share Music
-            </button>
-          </div>
+              <div>
+                <h1>Make a room and share music</h1>
+                <button
+                  onClick={() => {
+                    setUsertype("host");
+                    userProf["type"] = "host";
+                  }}
+                >
+                  Share Music
+                </button>
+              </div>
+            </div>
+          </header>
         </div>
       </div>
     );
@@ -247,85 +320,86 @@ function App() {
     if (!partyName)
       return (
         <div>
-          <p>I'm a host</p>
-          <div className="room-container"></div>
-          <label htmlFor="name">Name your PARTAY</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            ref={partyNameInput}
-          ></input>
-          <button
-            onClick={() => {
-              setPartyName(partyNameInput.current.value);
-            }}
-          >
-            Start a party!
-          </button>
-          <br></br>
-          <button
-            onClick={() => {
-              setUsertype("none");
-            }}
-          >
-            Back
-          </button>
+          <div className="App">
+            <header className="App-header">
+              <div className="room-container"></div>
+              <label htmlFor="name">Name your PARTAY</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                ref={partyNameInput}
+              ></input>
+              <button
+                onClick={() => {
+                  setPartyName(partyNameInput.current.value);
+                }}
+              >
+                Start a party!
+              </button>
+              <br></br>
+              <button
+                onClick={() => {
+                  setUsertype("none");
+                }}
+              >
+                Back
+              </button>
+            </header>
+          </div>
         </div>
       );
     if (partyName) {
-      if (deviceId) {
-        db.collection("room").doc(deviceId).set({
-          partyname: partyName,
-          token: token,
-        });
-      }
-
-      sdk.addListener("player_state_changed", (state) => {
-        setState(state);
-        if (deviceId && state) {
-          db.collection("room").doc(deviceId).update({
-            //db.collection("room").doc(deviceId).update({
-            track: state.track_window.current_track.name,
-            artist: state.track_window.current_track.artists[0],
-            albumart: state.track_window.current_track.album.images[0].url,
-            uri: state.track_window.current_track.uri,
-            position: state.position,
-            pause: state.paused,
-          });
-        }
-        // setNowPlaying({
-        //   track: state.track_window.current_track.name,
-        //   artist: state.track_window.current_track.artists[0],
-        //   albumart: state.track_window.current_track.album.images[0].url,
-        //   uri: state.track_window.current_track.uri,
-        //   position: state.position,
-        //   pause: state.paused,
-        // });
-        // spotifyWebApi.getMyCurrentPlaybackState().then((res) => {
-        //   console.log("getMyCurrentPlaybackState", res);
-        // });
-      });
+      // if (deviceId) {
+      //   db.collection("room").doc(deviceId).set({
+      //     partyname: partyName,
+      //     token: token,
+      //   });
+      // }
 
       return (
         <div>
           <header className="App-header">
-            <h1>Playing at {partyName}</h1>
-            <form onSubmit={searchHandler}>
-              <input
-                type="text"
-                onChange={queryHandler}
-                placeholder="search for a song"
-              ></input>
-              <input type="submit" value="search"></input>
-            </form>
-            <div>
+            <h1>Search for a song to play at {partyName}</h1>
+            <div className={"flexbox-container-row"}>
+              <form onSubmit={searchHandler}>
+                <input
+                  type="text"
+                  onChange={queryHandler}
+                  placeholder="search for a song"
+                ></input>
+                <input type="submit" value="search"></input>
+              </form>
+              <button
+                onClick={() => {
+                  spotifyWebApi.setAccessToken(token);
+                  spotifyWebApi
+                    .pause()
+                    .then((res) => console.log("pause", res));
+                }}
+              >
+                Pause Music
+              </button>
+              <button
+                onClick={() => {
+                  setUsertype("none");
+                  //setState("");
+                  spotifyWebApi.setAccessToken(token);
+                  spotifyWebApi
+                    .pause()
+                    .then((res) => console.log("pause", res));
+                }}
+              >
+                Back
+              </button>
+            </div>
+            <div className={"search-result"}>
               {sResults !== [] &&
                 resultsToggle &&
                 sResults.map((track) => (
                   <img
-                    src={track.album.images[2].url}
+                    src={track.album.images[1].url}
                     onClick={() => {
                       spotifyWebApi.setAccessToken(token);
                       spotifyWebApi.play({
@@ -336,52 +410,41 @@ function App() {
                   ></img>
                 ))}
             </div>
-            {/* <p>
-              Go to your Spotify and connect to Play.all() Music Player as a
-              device and play!
-            </p>
-            <p>Currently Playing...</p> */}
           </header>
-          <br></br>
-          <button
-            onClick={() => {
-              setUsertype("none");
-              //setState("");
-            }}
-          >
-            Back
-          </button>
         </div>
       );
     }
   } else if (usertype === "listener") {
-    //setPlaySong(true);
-    playSong();
-    if (dbPause) {
-      console.log("PAUSED");
-      // spotifyWebApi.setAccessToken(token);
-      // spotifyWebApi.pause().then((res) => console.log("pause", res));
-    } else if (!dbPause) {
-      console.log("IM NOT PAUSED YOU FOO");
-    }
-
+    // if (dbPause) {
+    //   console.log("PAUSED");
+    //   // spotifyWebApi.setAccessToken(token);
+    //   // spotifyWebApi.pause().then((res) => console.log("pause", res));
+    // } else if (!dbPause) {
+    //   console.log("IM NOT PAUSED YOU FOO");
+    // }
+    console.log("clicked Room Information", clickedRoom);
     return (
       <div>
         <div className="App">
           <header className="App-header">
-            <p>I'm a listener</p>
+            {/* <p>Party Room: {room.partyname}</p>
             <p>
-              Paused? {!dbPause}
+              You're listening to {room.track} by {room.artist.name}
               <br></br>
-              Position: {dbPosition}
+              <img src={room.albumart}></img>
               <br></br>
-              Track URI: {dbURI}
+              Paused? {room.pause}
               <br></br>
-            </p>
+              Position: {room.position}
+              <br></br>
+              Track URI: {room.uri}
+              <br></br>
+            </p> */}
             <button
               onClick={() => {
                 setUsertype("none");
-                //setPlaySong(false);
+                spotifyWebApi.setAccessToken(token);
+                spotifyWebApi.pause().then((res) => console.log("pause", res));
               }}
             >
               Back
