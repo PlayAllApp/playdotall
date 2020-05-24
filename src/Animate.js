@@ -15,6 +15,22 @@ function Animate() {
   return (
     <div>
       <header>
+        <div className={"test-search-page"}>
+          <FontAwesomeIcon icon={faPause} />
+          <p className={"now-playing-text"}>
+            Now Playing: The Less I Know The Better - Tame Impala
+          </p>
+          <div className={"search-results"}>
+            <div className={"result"}>
+              <img src="https://i.scdn.co/image/ab67616d00001e029e1cfc756886ac782e363d79"></img>
+              <FontAwesomeIcon icon={faPlay} className={"play-btn"} />
+              <div className={"result-track-details"}>
+                <p className={"track-title"}>The Less I Know The Better</p>
+                <p className={"artist-name"}>Tame Imapala</p>
+              </div>
+            </div>
+          </div>
+        </div>
         <h1 className={"test-brand animate__animated animate__slideInRight"}>
           <p className={"animate__animated animate__pulse"}>Play.All()</p>
         </h1>
