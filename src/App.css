@@ -14,14 +14,14 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #aaf0d1;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  /* align-items: center; */
+  /* justify-content: center; */
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: #343434;
 }
 
 .App-link {
@@ -94,4 +94,104 @@
 
 .active-room p {
   font-size: 12px;
+}
+
+.test-header {
+  padding: 100px;
+  margin: 0;
+  background-color: #f4ab3f;
+}
+
+.test-brand {
+  margin: 0;
+  padding: 50px;
+  background-color: #e94152;
+}
+
+.music-player-container {
+  background-color: #f1dfdd;
+  padding: 30px;
+}
+
+.music-player {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  color: #696969;
+}
+
+.music-player img {
+  height: 40px;
+  border-radius: 25px;
+}
+
+.track-details-with-album-art {
+  display: flex;
+  flex-direction: row;
+}
+
+.track-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  height: 40px;
+}
+
+.track-details p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.test-room-container {
+  padding: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  background-color: #00ffc3;
+}
+
+.test-room {
+}
+
+.test-room img {
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid white;
+}
+
+.test-room-text h2 {
+  margin: 0;
+}
+.test-room-text p {
+  margin: 0;
+}
+
+.circle-btn {
+  margin: 0 auto;
+}
+
+.circle {
+  border-radius: 50%;
+  background-color: #e95c4b;
+  width: 200px;
+  height: 200px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* .circle p {
+  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+} */
+
+a {
+  text-decoration: none;
 }

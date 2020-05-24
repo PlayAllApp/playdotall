@@ -1,10 +1,12 @@
-//generate a unique room key and store all info in there
-//do you want to close room automatically or keep it idle?
-// you want to enable host to play select and play songs in the browser
+//add a listener collection
+//only read the position when listener gets added to the db
+//display how many listeners there are in the host room
+//delete document when host leaves the room
 
 import React, { useRef, useState, useEffect } from "react";
 import useScript from "react-script-hook";
 import "./App.css";
+import Animate from "./Animate.js";
 import db from "./firebaseConfig";
 import Spotify from "spotify-web-api-js";
 const spotifyWebApi = new Spotify();
@@ -221,6 +223,10 @@ function App() {
   // }
   useEffect(() => {
     if (usertype === "listener") {
+      db.collection("listeners").doc(deviceId).set({
+        token: token,
+        userProfile: userProf,
+      });
       console.log("I AM ACTIVE ROOMS URI", activeRooms[0].uri);
       console.log("I AM ACTIVE ROOMS Pause", activeRooms[0].pause);
       const roomArr = activeRooms.filter((room) => {
@@ -255,16 +261,23 @@ function App() {
       <div>
         <div className="App">
           <header className="App-header">
+            <h1>Play.All()</h1>
             <p>
               Play.All() is a new way to share, discover and listen to music.
-              Host a room and share your music with the world. Join a room and
-              discover music.
+              Host a room and share your music with the world, or Join a room
+              and discover music.
             </p>
-            <a href={authURL} target="popup">
-              Log in to start
-            </a>
+
+            <div className={"circle-btn"}>
+              <a href={authURL} target="popup">
+                <div className={"circle"}>
+                  <p>Listen ♫</p>
+                </div>
+              </a>
+            </div>
           </header>
         </div>
+        <Animate />
       </div>
     );
   }
