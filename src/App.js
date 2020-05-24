@@ -6,14 +6,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import useScript from "react-script-hook";
 import "./App.css";
-import Animate from "./Animate.js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faPlay,
-  faPause,
-  faTimesCircle,
-  faForward,
-} from "@fortawesome/free-solid-svg-icons";
+import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons";
 import db from "./firebaseConfig";
 import Spotify from "spotify-web-api-js";
 const spotifyWebApi = new Spotify();
@@ -22,7 +16,7 @@ function App() {
   //replace with this in the future: https://github.com/spotify/web-api-auth-examples
   const token = window.location.hash.slice(14).split("&")[0];
   const clientId = "f5b9df7177184266a5de8eb2c679b982";
-  const redirectUri = "http://localhost:3000/";
+  const redirectUri = "https://playdotall.web.app/";
   //http://localhost:3000/
   //https://playdotall.web.app/
   const scopes = [
@@ -293,7 +287,7 @@ function App() {
       <div>
         <div className="splash-page">
           <h1 className={"splash-page-logo"}>Play.All(▶)</h1>
-          <div className={"circle-btn hvr-pulse"}>
+          <div className={"circle-btn"}>
             <a href={authURL} target="popup">
               <div className={"circle"}>
                 <p>Listen ♫</p>
@@ -324,7 +318,7 @@ function App() {
         <h2 className="room-select">
           Make a
           <button
-            className={"make-room-btn hvr-pulse"}
+            className={"make-room-btn"}
             onClick={() => {
               setUsertype("host");
               userProf["type"] = "host";
