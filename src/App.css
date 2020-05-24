@@ -266,8 +266,7 @@ input::placeholder {
 
 .now-playing {
   width: 80vw;
-  visibility: hidden;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   margin-top: 30px;
@@ -344,9 +343,16 @@ input::placeholder {
   text-align: center;
   width: 100%;
   height: 100vh;
+  overflow: auto;
 }
 
-.listener-page button {
-  width: 100%;
-  border: 3px solid white;
+.listener-page img {
+  margin: 30px;
+}
+
+.listener-information {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }

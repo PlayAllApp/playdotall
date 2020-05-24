@@ -1,7 +1,7 @@
-//add a listener collection
 //only read the position when listener gets added to the db
 //display how many listeners there are in the host room
 //delete document when host leaves the room
+//add mute or volume button to listener room
 
 import React, { useRef, useState, useEffect } from "react";
 import useScript from "react-script-hook";
@@ -333,7 +333,7 @@ function App() {
             ROOM
           </button>
           and share music or <br></br>
-          join a room and listen to music
+          join one of the rooms below and listen to music
         </h2>
         <div>
           <div className="active-rooms-container">
@@ -474,7 +474,7 @@ function App() {
                         setCurrentTrack(track.name);
                         setCurrentArtist(track.artists[0].name);
                         setCurrentAlbumArt(track.album.images[1].url);
-                        nowPlaying.current.style.visibility = "visible";
+                        nowPlaying.current.style.display = "flex";
                         spotifyWebApi.setAccessToken(token);
                         spotifyWebApi.play({
                           device_id: deviceId,
@@ -500,7 +500,6 @@ function App() {
       <div>
         <div className="listener-page">
           <header className="room-choice-header">
-            {/* <h4 className="user-name">{userProf.display_name}</h4> */}
             <h1
               className="logo"
               onClick={() => {
@@ -512,12 +511,13 @@ function App() {
               Play.All(▶)
             </h1>
           </header>
-          <p>Party Room: {listeningRoom}</p>
-          <p>
-            You're listening to {listeningTrack} by {listeningArtist}
-            <br></br>
+          <div className="listener-information">
+            <h1>Welcome to {listeningRoom} ♫</h1>
             <img src={listeningArtwork}></img>
-          </p>
+            <p>
+              Currently playing: {listeningTrack} by {listeningArtist}
+            </p>
+          </div>
         </div>
       </div>
     );
