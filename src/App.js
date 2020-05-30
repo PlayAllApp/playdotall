@@ -11,12 +11,11 @@ import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons";
 import db from "./firebaseConfig";
 import Spotify from "spotify-web-api-js";
 const spotifyWebApi = new Spotify();
+require("dotenv").config();
 
 function App() {
-  //replace with this in the future: https://github.com/spotify/web-api-auth-examples
-  const token = window.location.hash.slice(14).split("&")[0];
   const clientId = "f5b9df7177184266a5de8eb2c679b982";
-  const redirectUri = "https://playdotall.web.app/";
+  const redirectUri = "http://localhost:3000/";
   //http://localhost:3000/
   //https://playdotall.web.app/
   const scopes = [
@@ -30,6 +29,17 @@ function App() {
   const authURL = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
     "%20"
   )}&response_type=token&show_dialog=true`;
+
+  //consistent login
+  const [token, setToken] = useState("");
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      setToken(localStorage.getItem("token"));
+    } else {
+      setToken(window.location.hash.slice(14).split("&")[0]);
+      localStorage.setItem("token", token);
+    }
+  }, [token]);
 
   //load Spotify SDK script
   const [loading, error] = useScript({
@@ -84,21 +94,42 @@ function App() {
   };
 
   const searchMusic = (q) => {
-    return fetch(`${SPOTIFY_API_URL}/search?q=${q}&type=track&limit=32`, {
+    return fetch(
+      `${SPOTIFY_API_URL}/search?q=${q}&type=album,artist,track,playlist&limit=32`,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((res) => {
+        setSResults(res.tracks.items);
+
+        console.log(res, "IM A RES??");
+        console.log(sResults, "IM THE SEARCH RESULTS");
+      })
+      .catch(errHandler);
+  };
+  //end of search logic
+
+  //add to queue
+  const [queue, setQueue] = useState();
+  const addToQueue = (trackURI) => {
+    return fetch(`https://api.spotify.com/v1/me/player/queue?uri=${trackURI}`, {
+      method: "POST",
       headers: {
         Authorization: "Bearer " + token,
       },
     })
       .then((res) => res.json())
       .then((res) => {
-        setSResults(res.tracks.items);
-
-        // console.log(res.tracks.items, "IM A RES??")
-        console.log(sResults, "IM THE SEARCH RESULTS");
+        console.log(res, "addToQueue response");
       })
       .catch(errHandler);
   };
-  //end of search logic
+  console.log(queue);
+  //end of add queue logic
 
   useEffect(() => {
     if (token) {
@@ -151,12 +182,14 @@ function App() {
       });
 
       sdk.addListener("player_state_changed", (state) => {
+        console.log("state changed", state);
+        setQueue(state.track_window.next_tracks);
         setState(state);
         setPaused(state.paused);
         setURI(state.track_window.current_track.uri);
       });
     })();
-  }, []);
+  }, [token]);
 
   if (sdk) {
     sdk.addListener("player_state_changed", (state) => {
@@ -242,14 +275,12 @@ function App() {
       });
       const room = roomArr[0];
 
-      console.log("ROOOOOM", room);
-
-      db.collection("listeners").doc(deviceId).set({
-        token: token,
-        userProfile: userProf,
-        roomid: clickedRoom,
-        room: room,
-      });
+      // db.collection("listeners").doc(deviceId).set({
+      //   token: token,
+      //   userProfile: userProf,
+      //   roomid: clickedRoom,
+      //   room: room,
+      // });
 
       const trackURI = room.uri;
       const trackPosition = room.position;
@@ -342,7 +373,7 @@ function App() {
                   setListenerJoined(listenerJoined + 1);
                 }}
               >
-                <img src={room.albumart}></img>
+                <img src={room.albumart} alt="album-art"></img>
                 <p>
                   The <span className="room-info">{room.partyname}</span> room
                   is now playing:{" "}
@@ -370,9 +401,7 @@ function App() {
                 >
                   Play.All(▶)
                 </h1>
-                {/* <div className="empty-div"></div> */}
               </header>
-              {/* <div className="room-container"></div> */}
               <p htmlFor="name">Name your room something awesome</p>
               <input
                 className="party-name-input"
@@ -398,7 +427,6 @@ function App() {
       return (
         <div className={"search-page-page"}>
           <header className="room-choice-header">
-            {/* <h4 className="user-name">{userProf.display_name}</h4> */}
             <h1
               className="logo"
               onClick={() => {
@@ -427,7 +455,7 @@ function App() {
                 ></input>
               </form>
               <div ref={nowPlaying} className={"now-playing"}>
-                <img src={currentAlbumArt}></img>
+                <img src={currentAlbumArt} alt="album-art"></img>
                 <p className={"now-playing-text"}>
                   Now Playing: {currentTrack} - {currentArtist} at {partyName}
                 </p>
@@ -459,11 +487,17 @@ function App() {
             <div className={"search-results"}>
               {sResults !== [] &&
                 resultsToggle &&
-                sResults.map((track) => (
+                sResults.map((track, i) => (
                   <div className={"result"}>
                     <img
+                      key={i}
                       alt={"album-art"}
                       src={track.album.images[1].url}
+                    ></img>
+                    <FontAwesomeIcon
+                      icon={faPlay}
+                      size="2x"
+                      className={"play-btn"}
                       onClick={() => {
                         setCurrentTrack(track.name);
                         setCurrentArtist(track.artists[0].name);
@@ -475,8 +509,14 @@ function App() {
                           uris: [track.uri],
                         });
                       }}
-                    ></img>
-                    <FontAwesomeIcon icon={faPlay} className={"play-btn"} />
+                    />
+                    <button
+                      onClick={() => {
+                        addToQueue(track.uri);
+                      }}
+                    >
+                      ADD TO QUEUE
+                    </button>
                     <div className={"result-track-details"}>
                       <p className={"track-title"}>{track.name}</p>
                       <p className={"artist-name"}>{track.artists[0].name}</p>
