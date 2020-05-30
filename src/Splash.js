@@ -1,6 +1,23 @@
 import React from "react";
 
-function Splash({ authURL }) {
+function Splash() {
+  //set URL for button click;
+  const clientId = "f5b9df7177184266a5de8eb2c679b982";
+  const redirectUri = "http://localhost:3000/";
+  //http://localhost:3000/
+  //https://playdotall.web.app/
+  const scopes = [
+    "streaming",
+    "user-read-email",
+    "user-read-private",
+    "user-read-playback-state",
+    "user-modify-playback-state",
+  ];
+  const authEndpoint = "https://accounts.spotify.com/authorize";
+  const authURL = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
+    "%20"
+  )}&response_type=token&show_dialog=true`;
+
   return (
     <div>
       <div className="splash-page">

@@ -19,22 +19,6 @@ const spotifyWebApi = new Spotify();
 require("dotenv").config();
 
 function App() {
-  const clientId = "f5b9df7177184266a5de8eb2c679b982";
-  const redirectUri = "http://localhost:3000/";
-  //http://localhost:3000/
-  //https://playdotall.web.app/
-  const scopes = [
-    "streaming",
-    "user-read-email",
-    "user-read-private",
-    "user-read-playback-state",
-    "user-modify-playback-state",
-  ];
-  const authEndpoint = "https://accounts.spotify.com/authorize";
-  const authURL = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
-    "%20"
-  )}&response_type=token&show_dialog=true`;
-
   //consistent login
   const [token, setToken] = useState("");
   useEffect(() => {
@@ -288,8 +272,6 @@ function App() {
   // }
   useEffect(() => {
     if (usertype === "listener") {
-      console.log("I AM ACTIVE ROOMS URI", activeRooms[0].uri);
-      console.log("I AM ACTIVE ROOMS Pause", activeRooms[0].pause);
       const roomArr = activeRooms.filter((room) => {
         return room.id === clickedRoom;
       });
@@ -334,7 +316,7 @@ function App() {
 
   //sign in and get token
   if (!token) {
-    return <Splash authURL={authURL} />;
+    return <Splash />;
   }
 
   //choose room
