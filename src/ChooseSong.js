@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Queue from "./Queue";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons";
@@ -18,11 +18,29 @@ function ChooseSong({
   deviceId,
   uri,
   position,
-  queue,
   sResults,
   resultsToggle,
-  addToQueue,
 }) {
+  //add to queue
+  const [queue, setQueue] = useState([]);
+  const errHandler = (err) => {
+    console.log("Unable to load song");
+    console.log(err);
+  };
+  const addToQueue = (trackURI) => {
+    return fetch(`https://api.spotify.com/v1/me/player/queue?uri=${trackURI}`, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        console.log(res, "addToQueue response");
+      })
+      .catch(errHandler);
+  };
+  //end of add queue logic
   return (
     <div className={"search-page-page"}>
       <header className="room-choice-header">

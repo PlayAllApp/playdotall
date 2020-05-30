@@ -102,23 +102,6 @@ function App() {
   };
   //end of search logic
 
-  //add to queue
-  const [queue, setQueue] = useState([]);
-  const addToQueue = (trackURI) => {
-    return fetch(`https://api.spotify.com/v1/me/player/queue?uri=${trackURI}`, {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        console.log(res, "addToQueue response");
-      })
-      .catch(errHandler);
-  };
-  //end of add queue logic
-
   useEffect(() => {
     if (token) {
       spotifyWebApi.setAccessToken(token);
@@ -354,10 +337,10 @@ function App() {
           deviceId={deviceId}
           uri={uri}
           position={position}
-          queue={queue}
+          // queue={queue}
+          // addToQueue={addToQueue}
           sResults={sResults}
           resultsToggle={resultsToggle}
-          addToQueue={addToQueue}
         />
       );
     }
