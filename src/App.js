@@ -4,6 +4,9 @@
 //add mute or volume button to listener room
 
 import React, { useRef, useState, useEffect } from "react";
+import Splash from "./Splash";
+import ChooseRoom from "./ChooseRoom";
+import Queue from "./Queue";
 import useScript from "react-script-hook";
 import "./App.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -114,7 +117,7 @@ function App() {
   //end of search logic
 
   //add to queue
-  const [queue, setQueue] = useState();
+  const [queue, setQueue] = useState([]);
   const addToQueue = (trackURI) => {
     return fetch(`https://api.spotify.com/v1/me/player/queue?uri=${trackURI}`, {
       method: "POST",
@@ -128,7 +131,6 @@ function App() {
       })
       .catch(errHandler);
   };
-  console.log(queue);
   //end of add queue logic
 
   useEffect(() => {
@@ -183,10 +185,14 @@ function App() {
 
       sdk.addListener("player_state_changed", (state) => {
         console.log("state changed", state);
-        setQueue(state.track_window.next_tracks);
         setState(state);
         setPaused(state.paused);
         setURI(state.track_window.current_track.uri);
+        setCurrentTrack(state.track_window.current_track.name);
+        setCurrentArtist(state.track_window.current_track.artists[0].name);
+        setCurrentAlbumArt(
+          state.track_window.current_track.album.images[1].url
+        );
       });
     })();
   }, [token]);
@@ -243,6 +249,7 @@ function App() {
 
   //READING FROM DB
   const [activeRooms, setActiveRooms] = useState([]);
+  const [activeListeners, setActiveListeners] = useState();
   useEffect(() => {
     const data = db.collection("room");
     data.onSnapshot((snapshot) => {
@@ -253,7 +260,18 @@ function App() {
 
       setActiveRooms(activeRooms);
     });
+
+    const data2 = db.collection("listeners");
+    data2.onSnapshot((snapshot) => {
+      const activeListeners = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setActiveListeners(activeListeners);
+    });
   }, []);
+  console.log("ACTIVE LISTENERS", activeListeners);
 
   //currently playing for listener
   const [clickedRoom, setClickedRoom] = useState();
@@ -275,12 +293,12 @@ function App() {
       });
       const room = roomArr[0];
 
-      // db.collection("listeners").doc(deviceId).set({
-      //   token: token,
-      //   userProfile: userProf,
-      //   roomid: clickedRoom,
-      //   room: room,
-      // });
+      db.collection("listeners").doc(deviceId).set({
+        token: token,
+        userProfile: userProf,
+        roomid: clickedRoom,
+        room: room,
+      });
 
       const trackURI = room.uri;
       const trackPosition = room.position;
@@ -314,76 +332,19 @@ function App() {
 
   //sign in and get token
   if (!token) {
-    return (
-      <div>
-        <div className="splash-page">
-          <h1 className={"splash-page-logo"}>Play.All(▶)</h1>
-          <div className={"circle-btn"}>
-            <a href={authURL} target="popup">
-              <div className={"circle"}>
-                <p>Listen ♫</p>
-              </div>
-            </a>
-          </div>
-          <p className={"splash-page-text"}>
-            Play.All(▶) is a new way to share, discover, and listen to music.
-          </p>
-          <p className={"splash-page-text"}>
-            Host a room and share your music with the world, or join a room to
-            see what others are listening to!
-          </p>
-        </div>
-      </div>
-    );
+    return <Splash authURL={authURL} />;
   }
 
   //get listener type
   else if (usertype === "none") {
     return (
-      <div className="room-choice-page">
-        <header className="room-choice-header">
-          {/* <h4 className="user-name">{userProf.display_name}</h4> */}
-          <h1 className="logo">Play.All(▶)</h1>
-          {/* <div className="empty-div"></div> */}
-        </header>
-        <h2 className="room-select">
-          Make a
-          <button
-            className={"make-room-btn"}
-            onClick={() => {
-              setUsertype("host");
-              userProf["type"] = "host";
-            }}
-          >
-            ROOM
-          </button>
-          and share music or <br></br>
-          join one of the rooms below and listen to music
-        </h2>
-        <div>
-          <div className="active-rooms-container">
-            {activeRooms.map((room) => (
-              <div
-                className="active-room"
-                key={room.id}
-                id={room.id}
-                onClick={(e) => {
-                  setUsertype("listener");
-                  setClickedRoom(e.currentTarget.id);
-                  setListenerJoined(listenerJoined + 1);
-                }}
-              >
-                <img src={room.albumart} alt="album-art"></img>
-                <p>
-                  The <span className="room-info">{room.partyname}</span> room
-                  is now playing:{" "}
-                  <span className="room-info">{room.track}</span>
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <ChooseRoom
+        setUsertype={setUsertype}
+        activeRooms={activeRooms}
+        setClickedRoom={setClickedRoom}
+        setListenerJoined={setListenerJoined}
+        listenerJoined={listenerJoined}
+      />
     );
   } else if (usertype === "host") {
     if (!partyName)
@@ -483,6 +444,7 @@ function App() {
                   }}
                 />
               </div>
+              <Queue queue={queue} />
             </div>
             <div className={"search-results"}>
               {sResults !== [] &&
@@ -499,9 +461,6 @@ function App() {
                       size="2x"
                       className={"play-btn"}
                       onClick={() => {
-                        setCurrentTrack(track.name);
-                        setCurrentArtist(track.artists[0].name);
-                        setCurrentAlbumArt(track.album.images[1].url);
                         nowPlaying.current.style.display = "flex";
                         spotifyWebApi.setAccessToken(token);
                         spotifyWebApi.play({
@@ -513,6 +472,11 @@ function App() {
                     <button
                       onClick={() => {
                         addToQueue(track.uri);
+                        queue.push({
+                          albumart: track.album.images[1].url,
+                          artist: track.artists[0].name,
+                          name: track.name,
+                        });
                       }}
                     >
                       ADD TO QUEUE
@@ -547,6 +511,7 @@ function App() {
           </header>
           <div className="listener-information">
             <h1>Welcome to {listeningRoom} ♫</h1>
+            <p>Music selection by</p>
             <img src={listeningArtwork}></img>
             <p>
               Currently playing: {listeningTrack} by {listeningArtist}

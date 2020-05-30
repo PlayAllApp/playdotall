@@ -1,18 +1,22 @@
 import React from "react";
 
-function Queue() {
-  return (
-    <div>
-      {queue.map((track, i) => (
-        <div className={"now-playing"}>
-          <img src={track.album.images[0]} alt="album-art"></img>
-          <p className={"now-playing-text"}>
-            Coming up: {track.name} - {track.artists[0].name}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
+function Queue({ queue }) {
+  if (queue.length > 0) {
+    return (
+      <div>
+        <h1>Playing Next:</h1>
+        {queue.map((track) => (
+          <div>
+            <img src={track.albumart} alt="album-art"></img>
+            <p>
+              {track.name} - {track.artist}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
 }
 
 export default Queue;
