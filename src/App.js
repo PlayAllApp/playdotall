@@ -6,7 +6,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import Splash from "./Splash";
 import ChooseRoom from "./ChooseRoom";
-import Queue from "./Queue";
+import ChooseRoomName from "./ChooseRoomName";
+import ChooseSong from "./ChooseSong";
 import useScript from "react-script-hook";
 import "./App.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -335,7 +336,7 @@ function App() {
     return <Splash authURL={authURL} />;
   }
 
-  //get listener type
+  //choose room
   else if (usertype === "none") {
     return (
       <ChooseRoom
@@ -349,147 +350,32 @@ function App() {
   } else if (usertype === "host") {
     if (!partyName)
       return (
-        <div className="make-room">
-          <div>
-            <header>
-              <header className="room-choice-header">
-                {/* <h4 className="user-name">{userProf.display_name}</h4> */}
-                <h1
-                  className="logo"
-                  onClick={() => {
-                    setUsertype("none");
-                  }}
-                >
-                  Play.All(▶)
-                </h1>
-              </header>
-              <p htmlFor="name">Name your room something awesome</p>
-              <input
-                className="party-name-input"
-                placeholder="Make a room name!"
-                type="text"
-                id="name"
-                name="name"
-                required
-                ref={partyNameInput}
-              ></input>
-              <button
-                onClick={() => {
-                  setPartyName(partyNameInput.current.value);
-                }}
-              >
-                Start playing some music ♫
-              </button>
-            </header>
-          </div>
-        </div>
+        <ChooseRoomName
+          setUsertype={setUsertype}
+          partyNameInput={partyNameInput}
+          setPartyName={setPartyName}
+        />
       );
     if (partyName) {
       return (
-        <div className={"search-page-page"}>
-          <header className="room-choice-header">
-            <h1
-              className="logo"
-              onClick={() => {
-                setUsertype("none");
-                spotifyWebApi.setAccessToken(token);
-                spotifyWebApi.pause().then((res) => console.log("pause", res));
-              }}
-            >
-              Play.All(▶)
-            </h1>
-          </header>
-          <div className={"search-page"}>
-            <h1>Search for a song to play at {partyName}</h1>
-            <div className={"search-bar-now-playing"}>
-              <form onSubmit={searchHandler} className="search">
-                <input
-                  className="searchTerm"
-                  type="text"
-                  onChange={queryHandler}
-                  placeholder="search for a song"
-                ></input>
-                <input
-                  className="searchButton"
-                  type="submit"
-                  value="🔎"
-                ></input>
-              </form>
-              <div ref={nowPlaying} className={"now-playing"}>
-                <img src={currentAlbumArt} alt="album-art"></img>
-                <p className={"now-playing-text"}>
-                  Now Playing: {currentTrack} - {currentArtist} at {partyName}
-                </p>
-                <FontAwesomeIcon
-                  icon={faPlay}
-                  size="2x"
-                  onClick={() => {
-                    spotifyWebApi.setAccessToken(token);
-                    spotifyWebApi.play({
-                      device_id: deviceId,
-                      uris: [uri],
-                      position_ms: position,
-                    });
-                  }}
-                />
-                <FontAwesomeIcon
-                  className={"pause"}
-                  icon={faPause}
-                  size="2x"
-                  onClick={() => {
-                    spotifyWebApi.setAccessToken(token);
-                    spotifyWebApi
-                      .pause()
-                      .then((res) => console.log("pause", res));
-                  }}
-                />
-              </div>
-              <Queue queue={queue} />
-            </div>
-            <div className={"search-results"}>
-              {sResults !== [] &&
-                resultsToggle &&
-                sResults.map((track, i) => (
-                  <div className={"result"}>
-                    <img
-                      key={i}
-                      alt={"album-art"}
-                      src={track.album.images[1].url}
-                    ></img>
-                    <FontAwesomeIcon
-                      icon={faPlay}
-                      size="2x"
-                      className={"play-btn"}
-                      onClick={() => {
-                        nowPlaying.current.style.display = "flex";
-                        spotifyWebApi.setAccessToken(token);
-                        spotifyWebApi.play({
-                          device_id: deviceId,
-                          uris: [track.uri],
-                        });
-                      }}
-                    />
-                    <button
-                      onClick={() => {
-                        addToQueue(track.uri);
-                        queue.push({
-                          albumart: track.album.images[1].url,
-                          artist: track.artists[0].name,
-                          name: track.name,
-                        });
-                      }}
-                    >
-                      ADD TO QUEUE
-                    </button>
-                    <div className={"result-track-details"}>
-                      <p className={"track-title"}>{track.name}</p>
-                      <p className={"artist-name"}>{track.artists[0].name}</p>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
+        <ChooseSong
+          setUsertype={setUsertype}
+          partyName={partyName}
+          searchHandler={searchHandler}
+          queryHandler={queryHandler}
+          nowPlaying={nowPlaying}
+          currentAlbumArt={currentAlbumArt}
+          currentTrack={currentTrack}
+          currentArtist={currentArtist}
+          token={token}
+          deviceId={deviceId}
+          uri={uri}
+          position={position}
+          queue={queue}
+          sResults={sResults}
+          resultsToggle={resultsToggle}
+          addToQueue={addToQueue}
+        />
       );
     }
   } else if (usertype === "listener") {
