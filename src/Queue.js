@@ -7,7 +7,7 @@ function Queue({ queue }) {
         <h1>Playing Next:</h1>
         {queue.map((track) => (
           <div>
-            <img src={track.albumart} alt="album-art"></img>
+            <img className="que-img" src={track.albumart} alt="album-art"></img>
             <p>
               {track.name} - {track.artist}
             </p>

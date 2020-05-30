@@ -172,6 +172,7 @@ function App() {
     });
   }
 
+  //WRITING TO DB
   const [listenerJoined, setListenerJoined] = useState(0);
   useEffect(() => {
     console.log("STATE && DEVICEID", state, deviceId);
@@ -189,32 +190,6 @@ function App() {
       });
     }
   }, [uri, paused]);
-
-  useEffect(() => {
-    if (usertype === "host") {
-      spotifyWebApi.setAccessToken(token);
-      const interval = setInterval(() => {
-        spotifyWebApi.getMyCurrentPlayingTrack().then((data) => {
-          let position = data.progress_ms;
-          setPosition(position);
-          console.log("I AMMMMMMMMMMMMMMM A POSITION", position);
-        });
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  });
-
-  //COME BACK TO FIGURE OUT
-  useEffect(() => {
-    if (state && usertype === "host" && deviceId) {
-      console.log(listenerJoined, "IM LISTENINGGGGG");
-      console.log("I'M POSITION", position);
-      db.collection("room").doc(deviceId).update({
-        position: position,
-      });
-      console.log("IM STILL LISTENINGERERS");
-    }
-  }, [position]);
 
   //READING FROM DB
   const [activeRooms, setActiveRooms] = useState([]);
@@ -240,7 +215,29 @@ function App() {
       setActiveListeners(activeListeners);
     });
   }, []);
-  console.log("ACTIVE LISTENERS", activeListeners);
+
+  //CHANGING POSITION VARIABLE EVERY 5 SECONDS
+  useEffect(() => {
+    if (usertype === "host") {
+      spotifyWebApi.setAccessToken(token);
+      const interval = setInterval(() => {
+        spotifyWebApi.getMyCurrentPlayingTrack().then((data) => {
+          let position = data.progress_ms;
+          setPosition(position);
+        });
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  });
+
+  //UPDATING DB EVERY TIME POSITION VARIABLE CHANGES
+  useEffect(() => {
+    if (state && usertype === "host" && deviceId) {
+      db.collection("room").doc(deviceId).update({
+        position: position,
+      });
+    }
+  }, [position]);
 
   //currently playing for listener
   const [clickedRoom, setClickedRoom] = useState();
@@ -248,11 +245,10 @@ function App() {
   const [listeningTrack, setListeningTrack] = useState();
   const [listeningRoom, setListeningRoom] = useState();
   const [listeningArtwork, setListeningArtwork] = useState();
+  const [listeningURI, setListeningURI] = useState();
+  const [listeningPaused, setListeningPaused] = useState();
+  const [listeningPosition, setListeningPosition] = useState();
 
-  // if (activeRooms) {
-  //   let activeRoomURI = activeRooms[0].uri;
-  //   let activeRoomPause = activeRooms[0].pause;
-  // }
   useEffect(() => {
     if (usertype === "listener") {
       const roomArr = activeRooms.filter((room) => {
@@ -279,23 +275,30 @@ function App() {
       setListeningTrack(trackName);
       setListeningRoom(roomName);
       setListeningArtwork(trackArtwork);
+      setListeningURI(trackURI);
+      setListeningPaused(trackPaused);
+      setListeningPosition(trackPosition);
+    }
+  }, [usertype, activeRooms]);
 
-      if (!trackPaused) {
+  useEffect(() => {
+    if (usertype === "listener") {
+      if (!listeningPaused) {
         spotifyWebApi.setAccessToken(token);
         spotifyWebApi
           .play({
             device_id: deviceId,
-            uris: [trackURI],
-            position_ms: trackPosition,
+            uris: [listeningURI],
+            position_ms: position,
           })
           .then((res) => console.log(res));
       }
 
-      if (trackPaused) {
+      if (listeningPaused) {
         spotifyWebApi.pause().then((res) => console.log("pause", res));
       }
     }
-  }, [usertype, activeRooms]);
+  }, [usertype, listeningURI, listeningPaused, listeningPosition]);
 
   //sign in and get token
   if (!token) {
@@ -313,7 +316,10 @@ function App() {
         listenerJoined={listenerJoined}
       />
     );
-  } else if (usertype === "host") {
+  }
+
+  //host page
+  else if (usertype === "host") {
     if (!partyName)
       return (
         <ChooseRoomName
@@ -344,7 +350,10 @@ function App() {
         />
       );
     }
-  } else if (usertype === "listener") {
+  }
+
+  //listener page
+  else if (usertype === "listener") {
     return (
       <ListenRoom
         setUsertype={setUsertype}

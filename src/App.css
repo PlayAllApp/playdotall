@@ -341,6 +341,11 @@ input::placeholder {
   color: #343434;
 }
 
+.que-img {
+  width: 100px;
+  border-radius: 50%;
+}
+
 /* LISTENER PAGE STARTS HERE */
 .listener-page {
   background-color: #e95c4b;
