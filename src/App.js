@@ -8,6 +8,7 @@ import Splash from "./Splash";
 import ChooseRoom from "./ChooseRoom";
 import ChooseRoomName from "./ChooseRoomName";
 import ChooseSong from "./ChooseSong";
+import ListenRoom from "./ListenRoom";
 import useScript from "react-script-hook";
 import "./App.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -379,32 +380,15 @@ function App() {
       );
     }
   } else if (usertype === "listener") {
-    console.log("clicked Room Information", clickedRoom);
     return (
-      <div>
-        <div className="listener-page">
-          <header className="room-choice-header">
-            <h1
-              className="logo"
-              onClick={() => {
-                setUsertype("none");
-                spotifyWebApi.setAccessToken(token);
-                spotifyWebApi.pause().then((res) => console.log("pause", res));
-              }}
-            >
-              Play.All(▶)
-            </h1>
-          </header>
-          <div className="listener-information">
-            <h1>Welcome to {listeningRoom} ♫</h1>
-            <p>Music selection by</p>
-            <img src={listeningArtwork}></img>
-            <p>
-              Currently playing: {listeningTrack} by {listeningArtist}
-            </p>
-          </div>
-        </div>
-      </div>
+      <ListenRoom
+        setUsertype={setUsertype}
+        token={token}
+        listeningRoom={listeningRoom}
+        listeningArtwork={listeningArtwork}
+        listeningTrack={listeningTrack}
+        listeningArtist={listeningArtist}
+      />
     );
   } else {
     console.log("ERR");
