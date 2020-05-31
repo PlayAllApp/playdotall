@@ -18,7 +18,6 @@
     "firebase-tools": "^8.4.0",
     "global": "^4.4.0",
     "react": "^16.13.1",
-    "react-beforeunload": "^2.2.1",
     "react-dom": "^16.13.1",
     "react-script-hook": "^1.1.0",
     "react-scripts": "3.4.1",

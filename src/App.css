@@ -365,10 +365,3 @@ input::placeholder {
   align-items: center;
   justify-content: center;
 }
-
-/*PLAY>ALL LISTENER PAGE STARTS HERE */
-.listener-track-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}

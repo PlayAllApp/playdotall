@@ -9,10 +9,10 @@ import ChooseRoom from "./ChooseRoom";
 import ChooseRoomName from "./ChooseRoomName";
 import ChooseSong from "./ChooseSong";
 import ListenRoom from "./ListenRoom";
-import PlayAllRoom from "./PlayAllRoom";
 import useScript from "react-script-hook";
-import { useBeforeunload } from "react-beforeunload";
 import "./App.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons";
 import db from "./firebaseConfig";
 import Spotify from "spotify-web-api-js";
 const spotifyWebApi = new Spotify();
@@ -163,20 +163,6 @@ function App() {
           state.track_window.current_track.album.images[1].url
         );
       });
-
-      //CATCH ERRORS
-      sdk.on("initialization_error", ({ message }) => {
-        console.error("Failed to initialize", message);
-      });
-      sdk.on("authentication_error", ({ message }) => {
-        console.error("Failed to authenticate", message);
-      });
-      sdk.on("account_error", ({ message }) => {
-        console.error("Failed to validate Spotify account", message);
-      });
-      sdk.on("playback_error", ({ message }) => {
-        console.error("Failed to perform playback", message);
-      });
     })();
   }, [token]);
 
@@ -189,6 +175,7 @@ function App() {
   //WRITING TO DB
   const [listenerJoined, setListenerJoined] = useState(0);
   useEffect(() => {
+    console.log("STATE && DEVICEID", state, deviceId);
     if (state && usertype === "host") {
       console.log("URI AND PAUSED", uri, paused);
       db.collection("room").doc(deviceId).set({
@@ -203,12 +190,6 @@ function App() {
       });
     }
   }, [uri, paused]);
-
-  //DELETE FROM DB
-  useBeforeunload(() => {
-    db.collection("room").doc(deviceId).delete();
-    db.collection("listeners").doc(deviceId).delete();
-  });
 
   //READING FROM DB
   const [activeRooms, setActiveRooms] = useState([]);
@@ -267,10 +248,9 @@ function App() {
   const [listeningURI, setListeningURI] = useState();
   const [listeningPaused, setListeningPaused] = useState();
   const [listeningPosition, setListeningPosition] = useState();
-  let [trackNumber, setTrackNumber] = useState(-1);
 
   useEffect(() => {
-    if (usertype === "listener" && !playAllRoom) {
+    if (usertype === "listener") {
       const roomArr = activeRooms.filter((room) => {
         return room.id === clickedRoom;
       });
@@ -302,7 +282,7 @@ function App() {
   }, [usertype, activeRooms]);
 
   useEffect(() => {
-    if (usertype === "listener" && !playAllRoom) {
+    if (usertype === "listener") {
       if (!listeningPaused) {
         spotifyWebApi.setAccessToken(token);
         spotifyWebApi
@@ -320,8 +300,6 @@ function App() {
     }
   }, [usertype, listeningURI, listeningPaused, listeningPosition]);
 
-  const [playAllRoom, setPlayAllRoom] = useState(false);
-
   //sign in and get token
   if (!token) {
     return <Splash />;
@@ -336,13 +314,6 @@ function App() {
         setClickedRoom={setClickedRoom}
         setListenerJoined={setListenerJoined}
         listenerJoined={listenerJoined}
-        setPlayAllRoom={setPlayAllRoom}
-        listeningRoom={listeningRoom}
-        listeningArtwork={listeningArtwork}
-        listeningTrack={listeningTrack}
-        listeningArtist={listeningArtist}
-        token={token}
-        deviceId={deviceId}
       />
     );
   }
@@ -355,7 +326,6 @@ function App() {
           setUsertype={setUsertype}
           partyNameInput={partyNameInput}
           setPartyName={setPartyName}
-          deviceId={deviceId}
         />
       );
     if (partyName) {
@@ -383,7 +353,7 @@ function App() {
   }
 
   //listener page
-  else if (!playAllRoom && usertype === "listener") {
+  else if (usertype === "listener") {
     return (
       <ListenRoom
         setUsertype={setUsertype}
@@ -392,29 +362,6 @@ function App() {
         listeningArtwork={listeningArtwork}
         listeningTrack={listeningTrack}
         listeningArtist={listeningArtist}
-        listeningPaused={listeningPaused}
-        deviceId={deviceId}
-      />
-    );
-  } else if (playAllRoom && usertype === "listener") {
-    return (
-      <PlayAllRoom
-        setUsertype={setUsertype}
-        token={token}
-        deviceId={deviceId}
-        setListeningArtist={setListeningArtist}
-        setListeningTrack={setListeningTrack}
-        setListeningRoom={setListeningRoom}
-        setListeningArtwork={setListeningArtwork}
-        setListeningPosition={setListeningPosition}
-        listeningRoom={listeningRoom}
-        listeningArtwork={listeningArtwork}
-        listeningTrack={listeningTrack}
-        listeningArtist={listeningArtist}
-        listeningPosition={listeningPosition}
-        state={state}
-        trackNumber={trackNumber}
-        setTrackNumber={setTrackNumber}
       />
     );
   } else {
