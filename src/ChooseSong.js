@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import Queue from "./Queue";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons";
+import { useBeforeunload } from "react-beforeunload";
+import db from "./firebaseConfig";
 import Spotify from "spotify-web-api-js";
 const spotifyWebApi = new Spotify();
 
@@ -21,6 +23,11 @@ function ChooseSong({
   sResults,
   resultsToggle,
 }) {
+  //delete from db
+  useBeforeunload(() => {
+    db.collection("room").doc(deviceId).delete();
+    db.collection("listeners").doc(deviceId).delete();
+  });
   //add to queue
   const [queue, setQueue] = useState([]);
   const errHandler = (err) => {
