@@ -1,4 +1,6 @@
 import React from "react";
+import Spotify from "spotify-web-api-js";
+const spotifyWebApi = new Spotify();
 
 function ChooseRoom({
   setUsertype,
@@ -6,6 +8,11 @@ function ChooseRoom({
   setClickedRoom,
   setListenerJoined,
   listenerJoined,
+  listeningPaused,
+  token,
+  deviceId,
+  listeningURI,
+  listeningPosition,
 }) {
   return (
     <div className="room-choice-page">
@@ -36,6 +43,17 @@ function ChooseRoom({
                 setUsertype("listener");
                 setClickedRoom(e.currentTarget.id);
                 setListenerJoined(listenerJoined + 1);
+                //
+                if (!listeningPaused) {
+                  spotifyWebApi.setAccessToken(token);
+                  spotifyWebApi
+                    .play({
+                      device_id: deviceId,
+                      uris: [listeningURI],
+                      position_ms: listeningPosition,
+                    })
+                    .then((res) => console.log(res));
+                }
               }}
             >
               <img src={room.albumart} alt="album-art"></img>

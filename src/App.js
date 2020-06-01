@@ -134,7 +134,7 @@ function App() {
       console.log("The Web Playback SDK has loaded.");
       const sdk = new Player({
         name: "Play.all() Music Player",
-        volume: 0.5,
+        volume: 0.1,
         getOAuthToken: (callback) => {
           callback(token);
         },
@@ -226,6 +226,7 @@ function App() {
           setPosition(position);
         });
       }, 5000);
+      console.log(position, "IM A POSITION FOR HOST");
       return () => clearInterval(interval);
     }
   });
@@ -278,18 +279,24 @@ function App() {
       setListeningURI(trackURI);
       setListeningPaused(trackPaused);
       setListeningPosition(trackPosition);
+      console.log(
+        listeningPosition,
+        "IM ANOTHER LISTEING POSTION. ALL THE POS"
+      );
     }
   }, [usertype, activeRooms]);
 
   useEffect(() => {
     if (usertype === "listener") {
+      console.log("POSITION", position);
+      console.log("LisTENING POSITION", listeningPosition);
       if (!listeningPaused) {
         spotifyWebApi.setAccessToken(token);
         spotifyWebApi
           .play({
             device_id: deviceId,
             uris: [listeningURI],
-            position_ms: position,
+            position_ms: listeningPosition,
           })
           .then((res) => console.log(res));
       }
@@ -298,7 +305,28 @@ function App() {
         spotifyWebApi.pause().then((res) => console.log("pause", res));
       }
     }
-  }, [usertype, listeningURI, listeningPaused, listeningPosition]);
+  }, [listeningPaused]);
+  //removed usertype for testing
+
+  //When you join for the first time, position is zero even though it shouldn't be but everything after the first song is synced
+  useEffect(() => {
+    if (usertype === "listener") {
+      if (!listeningPaused) {
+        spotifyWebApi.setAccessToken(token);
+        spotifyWebApi
+          .play({
+            device_id: deviceId,
+            uris: [listeningURI],
+            position_ms: 0,
+          })
+          .then((res) => console.log(res));
+      }
+
+      if (listeningPaused) {
+        spotifyWebApi.pause().then((res) => console.log("pause", res));
+      }
+    }
+  }, [listeningURI]);
 
   //sign in and get token
   if (!token) {
@@ -314,6 +342,11 @@ function App() {
         setClickedRoom={setClickedRoom}
         setListenerJoined={setListenerJoined}
         listenerJoined={listenerJoined}
+        listeningPaused={listeningPaused}
+        token={token}
+        deviceId={deviceId}
+        listeningURI={listeningURI}
+        listeningPosition={listeningPosition}
       />
     );
   }
