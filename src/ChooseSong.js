@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Queue from "./Queue";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons";
+import db from "./firebaseConfig";
+import Volume from "./Volume.js";
 import Spotify from "spotify-web-api-js";
 const spotifyWebApi = new Spotify();
 
@@ -20,6 +22,8 @@ function ChooseSong({
   position,
   sResults,
   resultsToggle,
+  avatar,
+  displayName,
 }) {
   //add to queue
   const [queue, setQueue] = useState([]);
@@ -41,19 +45,27 @@ function ChooseSong({
       .catch(errHandler);
   };
   //end of add queue logic
+  const playerControl = useRef();
   return (
     <div className={"search-page-page"}>
       <header className="room-choice-header">
         <h1
           className="logo"
           onClick={() => {
-            setUsertype("none");
             spotifyWebApi.setAccessToken(token);
             spotifyWebApi.pause().then((res) => console.log("pause", res));
+            setUsertype("none");
+            db.collection("room").doc(deviceId).update({
+              pause: true,
+            });
           }}
         >
           Play.All(▶)
         </h1>
+        <div className="avatar-displayname">
+          <img src={avatar}></img>
+          <p>{displayName}</p>
+        </div>
       </header>
       <div className={"search-page"}>
         <h1>Search for a song to play at {partyName}</h1>
@@ -72,9 +84,12 @@ function ChooseSong({
             <p className={"now-playing-text"}>
               Now Playing: {currentTrack} - {currentArtist} at {partyName}
             </p>
+
+            <Volume token={token} />
             <FontAwesomeIcon
+              className={"play"}
               icon={faPlay}
-              size="2x"
+              size="1x"
               onClick={() => {
                 spotifyWebApi.setAccessToken(token);
                 spotifyWebApi.play({
@@ -87,7 +102,7 @@ function ChooseSong({
             <FontAwesomeIcon
               className={"pause"}
               icon={faPause}
-              size="2x"
+              size="1x"
               onClick={() => {
                 spotifyWebApi.setAccessToken(token);
                 spotifyWebApi.pause().then((res) => console.log("pause", res));
@@ -101,25 +116,51 @@ function ChooseSong({
             resultsToggle &&
             sResults.map((track, i) => (
               <div className={"result"}>
-                <img
-                  key={i}
-                  alt={"album-art"}
-                  src={track.album.images[1].url}
-                ></img>
-                <FontAwesomeIcon
-                  icon={faPlay}
-                  size="2x"
-                  className={"play-btn"}
-                  onClick={() => {
-                    nowPlaying.current.style.display = "flex";
-                    spotifyWebApi.setAccessToken(token);
-                    spotifyWebApi.play({
-                      device_id: deviceId,
-                      uris: [track.uri],
-                    });
-                  }}
-                />
+                <div className={"image-icon"}>
+                  <img
+                    key={i}
+                    alt={"album-art"}
+                    src={track.album.images[1].url}
+                    onClick={() => {
+                      nowPlaying.current.style.display = "flex";
+                      spotifyWebApi.setAccessToken(token);
+                      spotifyWebApi.play({
+                        device_id: deviceId,
+                        uris: [track.uri],
+                      });
+                      queue.push({
+                        albumart: track.album.images[1].url,
+                        artist: track.artists[0].name,
+                        name: track.name,
+                      });
+                    }}
+                  ></img>
+                  <FontAwesomeIcon
+                    icon={faPlay}
+                    size="2x"
+                    className={"play-btn"}
+                    onClick={() => {
+                      nowPlaying.current.style.display = "flex";
+                      spotifyWebApi.setAccessToken(token);
+                      spotifyWebApi.play({
+                        device_id: deviceId,
+                        uris: [track.uri],
+                      });
+                      queue.push({
+                        albumart: track.album.images[1].url,
+                        artist: track.artists[0].name,
+                        name: track.name,
+                      });
+                    }}
+                  />
+                </div>
+
+                <div className={"result-track-details"}>
+                  <p className={"track-title"}>{track.name}</p>
+                  <p className={"artist-name"}>{track.artists[0].name}</p>
+                </div>
                 <button
+                  className={"que-button"}
                   onClick={() => {
                     addToQueue(track.uri);
                     queue.push({
@@ -129,12 +170,8 @@ function ChooseSong({
                     });
                   }}
                 >
-                  ADD TO QUEUE
+                  Add to playlist
                 </button>
-                <div className={"result-track-details"}>
-                  <p className={"track-title"}>{track.name}</p>
-                  <p className={"artist-name"}>{track.artists[0].name}</p>
-                </div>
               </div>
             ))}
         </div>

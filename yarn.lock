@@ -1582,6 +1582,13 @@
     react-is "^16.8.0"
     react-transition-group "^4.4.0"
 
+"@material-ui/icons@^4.9.1":
+  version "4.9.1"
+  resolved "https://registry.yarnpkg.com/@material-ui/icons/-/icons-4.9.1.tgz#fdeadf8cb3d89208945b33dbc50c7c616d0bd665"
+  integrity sha512-GBitL3oBWO0hzBhvA9KxqcowRUsA0qzwKkURyC8nppnC3fw54KPKZ+d4V1Eeg/UnDRSzDaI9nGCdel/eh9AQMg==
+  dependencies:
+    "@babel/runtime" "^7.4.4"
+
 "@material-ui/styles@^4.10.0":
   version "4.10.0"
   resolved "https://registry.yarnpkg.com/@material-ui/styles/-/styles-4.10.0.tgz#2406dc23aa358217aa8cc772e6237bd7f0544071"
@@ -10867,6 +10874,13 @@ react-app-polyfill@^1.0.6:
     regenerator-runtime "^0.13.3"
     whatwg-fetch "^3.0.0"
 
+react-beforeunload@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/react-beforeunload/-/react-beforeunload-2.2.1.tgz#b30778a7110a6469ad6d449fa9d387c54ddec72e"
+  integrity sha512-qydpYQuGUaB1C5EP2EFN0YjPo9kgV10Z4suIZ79GIhp0DWNJxHyuR8BiTViOBltTIn9PwlpSqX4fE3uprsdqKA==
+  dependencies:
+    prop-types "^15.7.2"
+
 react-dev-utils@^10.2.1:
   version "10.2.1"
   resolved "https://registry.yarnpkg.com/react-dev-utils/-/react-dev-utils-10.2.1.tgz#f6de325ae25fa4d546d09df4bb1befdc6dd19c19"
@@ -12004,6 +12018,11 @@ split-string@^3.0.1, split-string@^3.0.2:
   integrity sha512-NzNVhJDYpwceVVii8/Hu6DKfD2G+NrQHlS/V/qgv763EYudVwEcMQNxd2lh+0VrUByXN/oJkl5grOhYWvQUYiw==
   dependencies:
     extend-shallow "^3.0.0"
+
+spotify-authentication@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/spotify-authentication/-/spotify-authentication-0.3.0.tgz#7e0703b155b8489a174a38560027194164c9a948"
+  integrity sha512-a4JyPwWyg5MSnrGeSt6wCSpubILl4pwjdN2F66Oe2OoAdzIm94PXXBSqdfNUSIKY90O0apeudr5njxNhTg1p5Q==
 
 spotify-web-api-js@^1.4.0:
   version "1.4.0"

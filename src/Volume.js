@@ -41,26 +41,28 @@ export default function ContinuousSlider({ token }) {
   }, [playerVolume]);
 
   return (
-    <div className={classes.root}>
-      <Typography id="continuous-slider" gutterBottom>
-        Volume
-      </Typography>
-      <Grid container spacing={2}>
-        <Grid item>
-          <VolumeDown />
+    <div className={"volume-slider"}>
+      <div className={classes.root}>
+        <Typography id="continuous-slider" gutterBottom>
+          Volume
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item>
+            <VolumeDown />
+          </Grid>
+          <Grid item xs>
+            <Slider
+              defaultValue={30}
+              playerVolume={playerVolume}
+              onChange={handleChange}
+              aria-labelledby="continuous-slider"
+            />
+          </Grid>
+          <Grid item>
+            <VolumeUp />
+          </Grid>
         </Grid>
-        <Grid item xs>
-          <Slider
-            defaultValue={30}
-            playerVolume={playerVolume}
-            onChange={handleChange}
-            aria-labelledby="continuous-slider"
-          />
-        </Grid>
-        <Grid item>
-          <VolumeUp />
-        </Grid>
-      </Grid>
+      </div>
     </div>
   );
 }

@@ -1,11 +1,31 @@
 import React from "react";
 
 function Splash() {
-  //set URL for button click;
-  const clientId = "f5b9df7177184266a5de8eb2c679b982";
-  const redirectUri = "http://localhost:3000/";
-  //http://localhost:3000/
-  //https://playdotall.web.app/
+  // const getAuth = () => {
+  //   const scopes = [
+  //     "streaming",
+  //     "user-read-email",
+  //     "user-read-private",
+  //     "user-read-playback-state",
+  //     "user-modify-playback-state",
+  //   ];
+  //   const clientId = "f5b9df7177184266a5de8eb2c679b982";
+  //   const redirectUri = "http://localhost:3000/";
+  //   const authURL = `?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
+  //     "%20"
+  //   )}&response_type=token&show_dialog=true`;
+  //   return fetch(`https://accounts.spotify.com/authorize?${authURL}`, {
+  //     mode: "cors",
+  //     headers: {
+  //       "Access-Control-Allow-Origin": "*",
+  //     },
+  //   })
+  //     .then((res) => res.json())
+  //     .then((res) => {
+  //       console.log(res, "RETURN FROM AUTH");
+  //     });
+  // };
+
   const scopes = [
     "streaming",
     "user-read-email",
@@ -13,6 +33,11 @@ function Splash() {
     "user-read-playback-state",
     "user-modify-playback-state",
   ];
+  //set URL for button click;
+  const clientId = "f5b9df7177184266a5de8eb2c679b982";
+  const redirectUri = "http://localhost:3000/";
+  //http://localhost:3000/
+  //playdotall.web.app/
   const authEndpoint = "https://accounts.spotify.com/authorize";
   const authURL = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
     "%20"
@@ -37,6 +62,10 @@ function Splash() {
           what others are listening to!
         </p>
       </div>
+      <footer className={"footer"}>
+        <p>DESIGNED AND IMPLEMENTED BY YURIKA NAMBA AND JEFF BENTLEY</p>
+        <p>ALL RIGHTS RESERVED</p>
+      </footer>
     </div>
   );
 }
