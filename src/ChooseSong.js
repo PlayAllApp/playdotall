@@ -80,7 +80,11 @@ function ChooseSong({
             <input className="searchButton" type="submit" value="🔎"></input>
           </form>
           <div ref={nowPlaying} className={"now-playing"}>
-            <img src={currentAlbumArt} alt="album-art"></img>
+            <img
+              className={"rotating"}
+              src={currentAlbumArt}
+              alt="album-art"
+            ></img>
             <p className={"now-playing-text"}>
               Now Playing: {currentTrack} - {currentArtist} at {partyName}
             </p>

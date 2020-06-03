@@ -83,7 +83,9 @@ function App() {
   //currently playing for host
   const [currentTrack, setCurrentTrack] = useState();
   const [currentArtist, setCurrentArtist] = useState();
-  const [currentAlbumArt, setCurrentAlbumArt] = useState();
+  const [currentAlbumArt, setCurrentAlbumArt] = useState(
+    "https://image.flaticon.com/icons/png/512/13/13510.png"
+  );
   const nowPlaying = useRef();
 
   //search states + url

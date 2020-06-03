@@ -35,9 +35,9 @@ function Splash() {
   ];
   //set URL for button click;
   const clientId = "f5b9df7177184266a5de8eb2c679b982";
-  const redirectUri = "http://localhost:3000/";
+  const redirectUri = "https://playdotall.web.app/";
   //http://localhost:3000/
-  //playdotall.web.app/
+  //https://playdotall.web.app/
   const authEndpoint = "https://accounts.spotify.com/authorize";
   const authURL = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join(
     "%20"
@@ -49,7 +49,7 @@ function Splash() {
         <h1 className={"splash-page-logo"}>Play.All(▶)</h1>
         <div className={"circle-btn"}>
           <a href={authURL} target="popup">
-            <div className={"circle"}>
+            <div className={"circle pulse-slow"}>
               <p>Listen ♫</p>
             </div>
           </a>
@@ -62,10 +62,6 @@ function Splash() {
           what others are listening to!
         </p>
       </div>
-      <footer className={"footer"}>
-        <p>DESIGNED AND IMPLEMENTED BY YURIKA NAMBA AND JEFF BENTLEY</p>
-        <p>ALL RIGHTS RESERVED</p>
-      </footer>
     </div>
   );
 }

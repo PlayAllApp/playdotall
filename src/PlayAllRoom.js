@@ -110,6 +110,11 @@ function PlayAllRoom({
           </div>
         </div>
       </div>
+      <div className={"box"}>
+        <div class="wave -one"></div>
+        <div class="wave -two"></div>
+        <div class="wave -three"></div>
+      </div>
     </div>
   );
 }

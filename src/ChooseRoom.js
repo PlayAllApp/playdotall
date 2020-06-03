@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import "all-animation";
+import "animate.css";
 import Spotify from "spotify-web-api-js";
 const spotifyWebApi = new Spotify();
 
@@ -14,7 +16,7 @@ function ChooseRoom({
   avatar,
 }) {
   const [playlistArtwork, setPlaylistArtwork] = useState(
-    "https://previews.123rf.com/images/juliarstudio/juliarstudio1604/juliarstudio160401344/55304277-loading-circle-sign-icon-in-flat-style-on-a-yellow-background.jpg"
+    "https://image.flaticon.com/icons/png/512/13/13510.png"
   );
 
   const getPlaylistImage = async () => {
@@ -33,13 +35,11 @@ function ChooseRoom({
     let artwork = await data[1].url;
     return artwork;
   };
-  // const errHandler = (err) => {
-  //   console.log("Unable to load song");
-  //   console.log(err);
-  // };
+
   useEffect(() => {
     getPlaylistImage().then((artwork) => setPlaylistArtwork(artwork));
   }, []);
+
   return (
     <div className="room-choice-page">
       <header className="room-choice-header">
@@ -49,7 +49,7 @@ function ChooseRoom({
           <p>{displayName}</p>
         </div>
       </header>
-      <p className="room-select">
+      <p className="room-select flip-left">
         Make a
         <button
           className={"make-room-btn"}
@@ -59,8 +59,7 @@ function ChooseRoom({
         >
           ROOM
         </button>
-        and share music or <br></br>
-        join one of the rooms below and listen to music
+        and share music or join one of the rooms below and listen to music
       </p>
       <div>
         <div className="active-rooms-container">
@@ -71,9 +70,13 @@ function ChooseRoom({
               setPlayAllRoom(true);
             }}
           >
-            <img src={playlistArtwork} alt="album-art"></img>
+            <img
+              className={"rotating"}
+              src={playlistArtwork}
+              alt="album-art"
+            ></img>
             <p>
-              The <span className="room-info">Play.All() Jams</span> room
+              The <span className="room-info">Play.All(▶) Jams</span> room
             </p>
           </div>
           {activeRooms.map((room) => (
@@ -87,7 +90,11 @@ function ChooseRoom({
                 setListenerJoined(listenerJoined + 1);
               }}
             >
-              <img src={room.albumart} alt="album-art"></img>
+              <img
+                className={"rotating"}
+                src={room.albumart}
+                alt="album-art"
+              ></img>
               <p>
                 The <span className="room-info">{room.partyname}</span> room is
                 now playing: <span className="room-info">{room.track}</span>
@@ -95,6 +102,11 @@ function ChooseRoom({
             </div>
           ))}
         </div>
+      </div>
+      <div className={"box"}>
+        <div class="wave -one"></div>
+        <div class="wave -two"></div>
+        <div class="wave -three"></div>
       </div>
     </div>
   );

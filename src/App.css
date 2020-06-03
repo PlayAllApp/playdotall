@@ -1,3 +1,50 @@
+* {
+  box-sizing: border-box;
+}
+
+.box {
+  position: fixed;
+  transform: rotate(33deg);
+  right: 0;
+  top: 0;
+}
+
+.wave {
+  position: absolute;
+  opacity: 0.4;
+  width: 2000px;
+  height: 1000px;
+  margin-left: -150px;
+  margin-top: -200px;
+  border-radius: 43%;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  from {
+    transform: rotate(360deg);
+  }
+}
+
+.wave.-one {
+  animation: rotate 7000ms infinite linear;
+  opacity: 0.1;
+  background: #ffff9f;
+}
+
+.wave.-two {
+  animation: rotate 3000ms infinite linear;
+  opacity: 0.1;
+  background: #ffb6c1;
+}
+
+.wave.-three {
+  animation: rotate 7500ms infinite linear;
+  background-color: #ffff99;
+}
+
 a {
   text-decoration: none;
 }
@@ -23,47 +70,6 @@ button:hover {
   cursor: pointer;
 }
 
-/* PULSE ANIMATION */
-/* @-webkit-keyframes hvr-pulse {
-  25% {
-    -webkit-transform: scale(1.1);
-    transform: scale(1.1);
-  }
-  75% {
-    -webkit-transform: scale(0.9);
-    transform: scale(0.9);
-  }
-}
-@keyframes hvr-pulse {
-  25% {
-    -webkit-transform: scale(1.1);
-    transform: scale(1.1);
-  }
-  75% {
-    -webkit-transform: scale(0.9);
-    transform: scale(0.9);
-  }
-}
-.hvr-pulse {
-  display: inline-block;
-  vertical-align: middle;
-  -webkit-transform: perspective(1px) translateZ(0);
-  transform: perspective(1px) translateZ(0);
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0);
-}
-.hvr-pulse:hover,
-.hvr-pulse:focus,
-.hvr-pulse:active {
-  -webkit-animation-name: hvr-pulse;
-  animation-name: hvr-pulse;
-  -webkit-animation-duration: 1s;
-  animation-duration: 1s;
-  -webkit-animation-timing-function: linear;
-  animation-timing-function: linear;
-  -webkit-animation-iteration-count: infinite;
-  animation-iteration-count: infinite;
-} */
-
 /* SPLASH PAGE STARTS HERE */
 .splash-page {
   background-color: #aaf0d1;
@@ -85,11 +91,11 @@ button:hover {
 }
 
 .splash-page-text {
-  margin: 0 40px;
+  margin: 0px 40px;
 }
 
 .circle-btn {
-  margin: 30px auto;
+  margin: 70px auto;
 }
 
 .circle {
@@ -117,6 +123,9 @@ button:hover {
 }
 
 .logo:hover {
+  box-shadow: 1px 1px #343434, 2px 2px #3434, 3px 3px #3434;
+  -webkit-transform: translateX(-3px);
+  transform: translateX(-3px);
   cursor: pointer;
 }
 
@@ -147,11 +156,11 @@ button:hover {
 }
 
 .room-select {
-  padding-top: 50px;
+  margin: 30px;
 }
 
 .active-rooms-container {
-  padding: 50px 0px;
+  padding: 20px 0px;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -159,23 +168,66 @@ button:hover {
 }
 
 .active-room {
-  width: 25vw;
-  margin: 0 25px;
+  width: 22vw;
+  margin: 0 33px;
+}
+
+.active-room:hover {
+  cursor: pointer;
 }
 
 .active-room img {
+  border-radius: 50%;
+  border: 5px solid #343434;
   width: 100%;
+}
+
+@-webkit-keyframes rotating /* Safari and Chrome */ {
+  from {
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes rotating {
+  from {
+    -ms-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -ms-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+.rotating {
+  -webkit-animation: rotating 6s linear infinite;
+  -moz-animation: rotating 6s linear infinite;
+  -ms-animation: rotating 6s linear infinite;
+  -o-animation: rotating 6s linear infinite;
+  animation: rotating 6s linear infinite;
 }
 
 .active-room p {
   font-size: 12px;
+  margin: 30px 0;
 }
 
 .room-info {
   font-weight: bold;
   font-size: 20px;
   color: #343434;
-  background-color: #0abab5;
+  background-color: #e95c4b;
   border-radius: 25px;
   padding: 1px 7px;
 }
@@ -190,6 +242,12 @@ button:hover {
   overflow: auto;
 }
 
+.make-room-btn:hover {
+  -webkit-transform: scale(1.1);
+  -ms-transform: scale(1.1);
+  transform: scale(1.1);
+}
+
 .party-name-input {
   font-size: 16px;
   width: 90%;
@@ -199,7 +257,7 @@ button:hover {
   border-radius: 5px;
   outline: none;
   color: #343434;
-  height: 50px;
+  height: 70px;
   margin: 15px 0 25px 0;
 }
 
@@ -254,7 +312,7 @@ input::placeholder {
   border-radius: 5px 0 0 5px;
   outline: none;
   color: #343434;
-  height: 50px;
+  height: 70px;
 }
 
 .searchTerm:focus {
@@ -263,7 +321,7 @@ input::placeholder {
 
 .searchButton {
   width: 66px;
-  height: 66px;
+  height: 70px;
   border: 1px solid #343434;
   background: #343434;
   text-align: center;
@@ -426,6 +484,14 @@ input::placeholder {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.listener-information p {
+  margin: 0 50px;
+}
+
+.listener-track-container {
+  margin: 0 50px;
 }
 
 .listen-room-volume {
