@@ -35,7 +35,7 @@ function Splash() {
   ];
   //set URL for button click;
   const clientId = "f5b9df7177184266a5de8eb2c679b982";
-  const redirectUri = "https://playdotall.web.app/";
+  const redirectUri = "http://localhost:3000/";
   //http://localhost:3000/
   //https://playdotall.web.app/
   const authEndpoint = "https://accounts.spotify.com/authorize";
