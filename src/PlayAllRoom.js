@@ -100,7 +100,7 @@ function PlayAllRoom({
         <div className="listener-information">
           <h1>Welcome to Play.All() Jamz ♫</h1>
           <div className="listener-track-container">
-            <img src={playAllArtwork}></img>
+            <img src={playAllArtwork} className={"rotating"}></img>
             <p>
               Current track: {playAllTrack} by {playAllArtist}
             </p>

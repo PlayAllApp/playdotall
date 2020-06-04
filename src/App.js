@@ -345,6 +345,8 @@ function App() {
 
   //DELETE FROM DB - doesn't work if host is still playing music
   useBeforeunload(() => {
+    setToken("");
+    localStorage.removeItem("token");
     db.collection("room").doc(deviceId).delete();
     db.collection("listeners").doc(deviceId).delete();
   });

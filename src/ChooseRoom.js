@@ -61,27 +61,32 @@ function ChooseRoom({
         </button>
         and share music or join one of the rooms below and listen to music
       </p>
-      <div>
-        <div className="active-rooms-container">
+      <div className="active-room-container">
+        <div className="active-room">
           <div
-            className="active-room"
+            className="container"
             onClick={() => {
               setUsertype("playroom");
               setPlayAllRoom(true);
             }}
           >
-            <img
-              className={"rotating"}
-              src={playlistArtwork}
-              alt="album-art"
-            ></img>
-            <p>
-              The <span className="room-info">Play.All(▶) Jams</span> room
-            </p>
+            <div className="album">
+              <img src={playlistArtwork} alt="album-art"></img>
+            </div>
+            <div className="record">
+              <img src="http://upload.wikimedia.org/wikipedia/commons/a/ae/Record2.png" />
+            </div>
           </div>
-          {activeRooms.map((room) => (
+        </div>
+        <p>
+          <span className="room-info">Play.All(▶) Jams</span> room
+        </p>
+      </div>
+      {activeRooms.map((room) => (
+        <div className="active-room-container">
+          <div className="active-room">
             <div
-              className="active-room"
+              className="container"
               key={room.id}
               id={room.id}
               onClick={(e) => {
@@ -90,19 +95,20 @@ function ChooseRoom({
                 setListenerJoined(listenerJoined + 1);
               }}
             >
-              <img
-                className={"rotating"}
-                src={room.albumart}
-                alt="album-art"
-              ></img>
-              <p>
-                The <span className="room-info">{room.partyname}</span> room is
-                now playing: <span className="room-info">{room.track}</span>
-              </p>
+              <div className="album">
+                <img src={room.albumart} alt="album-art"></img>
+              </div>
+              <div className="record">
+                <img src="http://upload.wikimedia.org/wikipedia/commons/a/ae/Record2.png" />
+              </div>
             </div>
-          ))}
+          </div>
+          <p>
+            <span className="room-info">{room.partyname}</span> room is now
+            playing <span className="room-info">{room.track}</span>
+          </p>
         </div>
-      </div>
+      ))}
       <div className={"box"}>
         <div class="wave -one"></div>
         <div class="wave -two"></div>

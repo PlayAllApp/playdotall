@@ -148,7 +148,6 @@ button:hover {
 /* ROOM CHOICE PAGE STARTS HERE */
 .room-choice-page {
   background-color: #f2ba49;
-  height: 100vh;
   text-align: center;
   width: 100%;
   height: 100vh;
@@ -159,68 +158,68 @@ button:hover {
   margin: 30px;
 }
 
-.active-rooms-container {
-  padding: 20px 0px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
+.active-room-container {
+  margin: 70px 0;
 }
 
 .active-room {
-  width: 22vw;
-  margin: 0 33px;
-}
-
-.active-room:hover {
-  cursor: pointer;
-}
-
-.active-room img {
-  border-radius: 50%;
-  border: 5px solid #343434;
-  width: 100%;
-}
-
-@-webkit-keyframes rotating /* Safari and Chrome */ {
-  from {
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-  to {
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
-@keyframes rotating {
-  from {
-    -ms-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-  to {
-    -ms-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
-.rotating {
-  -webkit-animation: rotating 6s linear infinite;
-  -moz-animation: rotating 6s linear infinite;
-  -ms-animation: rotating 6s linear infinite;
-  -o-animation: rotating 6s linear infinite;
-  animation: rotating 6s linear infinite;
+  margin: 50px auto;
+  width: 300px;
+  height: 300px;
 }
 
 .active-room p {
+  border: 1px solid red;
   font-size: 12px;
   margin: 30px 0;
+}
+
+.container {
+  position: relative;
+  cursor: pointer;
+  /* margin: 20px; */
+  width: 100%;
+  height: 100%;
+  /* float: left; */
+}
+
+.album {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  height: 100%;
+  transition: 0.5s ease;
+}
+
+.record {
+  position: absolute;
+  width: 90%;
+  height: 90%;
+  padding: 5px;
+  transition: 0.75s ease;
+}
+
+.album img,
+.record img {
+  width: 100%;
+  height: 100%;
+}
+
+.container:hover {
+  -webkit-transform: scale(1.3);
+  -ms-transform: scale(1.3);
+  transform: scale(1.3);
+}
+
+.container:hover .album {
+  margin: 0 0 0 -15px;
+}
+
+.container:hover .record {
+  margin: 0 0 0 60px;
+  -webkit-transform: rotate(360deg);
 }
 
 .room-info {
@@ -494,6 +493,53 @@ input::placeholder {
   margin: 0 50px;
 }
 
+.listener-track-container img {
+  border-radius: 50%;
+  border: 5px solid #343434;
+}
+
+.listener-information img {
+  border-radius: 50%;
+  border: 5px solid #343434;
+}
+
 .listen-room-volume {
-  margin: 0 auto;
+  margin: 30px auto;
+}
+
+/* ROTATION ANIMATION */
+@-webkit-keyframes rotating /* Safari and Chrome */ {
+  from {
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes rotating {
+  from {
+    -ms-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -ms-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+.rotating {
+  -webkit-animation: rotating 6s linear infinite;
+  -moz-animation: rotating 6s linear infinite;
+  -ms-animation: rotating 6s linear infinite;
+  -o-animation: rotating 6s linear infinite;
+  animation: rotating 6s linear infinite;
 }

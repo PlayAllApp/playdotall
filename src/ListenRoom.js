@@ -39,7 +39,7 @@ function ListenRoom({
             The host is currently away and the music is on pause. <br></br>Come
             back later or find a different room to join!
           </p>
-          <img src={listeningArtwork}></img>
+          <img src={listeningArtwork} className={"rotating"}></img>
           <p>
             Currently paused: {listeningTrack} by {listeningArtist}
           </p>
@@ -75,8 +75,7 @@ function ListenRoom({
         </header>
         <div className="listener-information">
           <h1>Welcome to {listeningRoom} ♫</h1>
-          <p>Music selection by</p>
-          <img src={listeningArtwork}></img>
+          <img src={listeningArtwork} className={"rotating"}></img>
           <p>
             Currently playing: {listeningTrack} by {listeningArtist}
           </p>
