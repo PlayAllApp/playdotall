@@ -24,6 +24,7 @@ function ChooseSong({
   resultsToggle,
   avatar,
   displayName,
+  activeListeners,
 }) {
   //add to queue
   const [queue, setQueue] = useState([]);
@@ -45,7 +46,17 @@ function ChooseSong({
       .catch(errHandler);
   };
   //end of add queue logic
-  const playerControl = useRef();
+
+  //play pause icon display toggle
+  const playIcon = useRef();
+  const pauseIcon = useRef();
+
+  //get listeners
+  const playRoomListeners = activeListeners.filter((obj) => {
+    return obj.id === deviceId;
+  });
+  const numListeners = playRoomListeners.length;
+
   return (
     <div className={"search-page-page"}>
       <header className="room-choice-header">
@@ -69,6 +80,14 @@ function ChooseSong({
       </header>
       <div className={"search-page"}>
         <h1>Search for a song to play at {partyName}</h1>
+        <div className="num-of-listeners">
+          <p>{numListeners} listeners</p>
+        </div>
+        {playRoomListeners.map((obj) => (
+          <div>
+            <p>{obj.listener.display_name} is listening</p>
+          </div>
+        ))}
         <div className={"search-bar-now-playing"}>
           <form onSubmit={searchHandler} className="search">
             <input
@@ -90,28 +109,36 @@ function ChooseSong({
             </p>
 
             <Volume token={token} />
-            <FontAwesomeIcon
-              className={"play"}
-              icon={faPlay}
-              size="1x"
-              onClick={() => {
-                spotifyWebApi.setAccessToken(token);
-                spotifyWebApi.play({
-                  device_id: deviceId,
-                  uris: [uri],
-                  position_ms: position,
-                });
-              }}
-            />
-            <FontAwesomeIcon
-              className={"pause"}
-              icon={faPause}
-              size="1x"
-              onClick={() => {
-                spotifyWebApi.setAccessToken(token);
-                spotifyWebApi.pause().then((res) => console.log("pause", res));
-              }}
-            />
+            <div ref={playIcon} className={"play"}>
+              <FontAwesomeIcon
+                icon={faPlay}
+                size="2x"
+                onClick={() => {
+                  playIcon.current.style.display = "none";
+                  pauseIcon.current.style.display = "block";
+                  spotifyWebApi.setAccessToken(token);
+                  spotifyWebApi.play({
+                    device_id: deviceId,
+                    uris: [uri],
+                    position_ms: position,
+                  });
+                }}
+              />
+            </div>
+            <div ref={pauseIcon} className={"pause"}>
+              <FontAwesomeIcon
+                icon={faPause}
+                size="2x"
+                onClick={() => {
+                  playIcon.current.style.display = "block";
+                  pauseIcon.current.style.display = "none";
+                  spotifyWebApi.setAccessToken(token);
+                  spotifyWebApi
+                    .pause()
+                    .then((res) => console.log("pause", res));
+                }}
+              />
+            </div>
           </div>
           <Queue queue={queue} />
         </div>

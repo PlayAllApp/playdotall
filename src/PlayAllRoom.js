@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import Volume from "./Volume.js";
+import db from "./firebaseConfig";
 import Spotify from "spotify-web-api-js";
 const spotifyWebApi = new Spotify();
 
@@ -17,6 +18,7 @@ function PlayAllRoom({
   setPlayAllRoom,
   avatar,
   displayName,
+  activeListeners,
 }) {
   function getRandomNumberBetween(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
@@ -77,6 +79,13 @@ function PlayAllRoom({
     getCurrentlyListening();
   }, [state]);
 
+  //array of objects with deviceId, listener profile, room name
+  console.log(activeListeners);
+  const playRoomListeners = activeListeners.filter((obj) => {
+    return obj.room === "playroom";
+  });
+  const numListeners = playRoomListeners.length;
+
   return (
     <div>
       <div className="listener-page">
@@ -84,6 +93,7 @@ function PlayAllRoom({
           <h1
             className="logo"
             onClick={() => {
+              db.collection("listeners").doc(deviceId).delete();
               setUsertype("none");
               setPlayAllRoom(false);
               spotifyWebApi.setAccessToken(token);
@@ -98,7 +108,15 @@ function PlayAllRoom({
           </div>
         </header>
         <div className="listener-information">
-          <h1>Welcome to Play.All() Jamz ♫</h1>
+          <h1>Welcome to Play.All(▶) Jamz ♫</h1>
+          <div className="num-of-listeners">
+            <p>{numListeners} listeners</p>
+          </div>
+          {playRoomListeners.map((obj) => (
+            <div>
+              <p>{obj.listener.display_name} is listening</p>
+            </div>
+          ))}
           <div className="listener-track-container">
             <img src={playAllArtwork} className={"rotating"}></img>
             <p>

@@ -195,8 +195,8 @@ button:hover {
 
 .record {
   position: absolute;
-  width: 90%;
-  height: 90%;
+  width: 98%;
+  height: 98%;
   padding: 5px;
   transition: 0.75s ease;
 }
@@ -218,7 +218,7 @@ button:hover {
 }
 
 .container:hover .record {
-  margin: 0 0 0 60px;
+  margin: 0 0 0 90px;
   -webkit-transform: rotate(360deg);
 }
 
@@ -345,6 +345,10 @@ input::placeholder {
   align-items: center;
   justify-content: space-around;
   margin-top: 30px;
+}
+
+.play {
+  display: none;
 }
 
 .play:hover {

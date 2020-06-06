@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "all-animation";
 import "animate.css";
+import db from "./firebaseConfig";
 import Spotify from "spotify-web-api-js";
 const spotifyWebApi = new Spotify();
 
 function ChooseRoom({
+  deviceId,
+  userProf,
   setUsertype,
   activeRooms,
   setClickedRoom,
@@ -68,6 +71,10 @@ function ChooseRoom({
             onClick={() => {
               setUsertype("playroom");
               setPlayAllRoom(true);
+              db.collection("listeners").doc(deviceId).set({
+                room: "playroom",
+                listener: userProf,
+              });
             }}
           >
             <div className="album">
@@ -93,6 +100,11 @@ function ChooseRoom({
                 setUsertype("listener");
                 setClickedRoom(e.currentTarget.id);
                 setListenerJoined(listenerJoined + 1);
+                db.collection("listeners").doc(deviceId).set({
+                  id: room.id,
+                  room: room.partyname,
+                  listener: userProf,
+                });
               }}
             >
               <div className="album">

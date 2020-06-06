@@ -32,30 +32,35 @@ function App() {
     }
   }, [token]);
 
-  //get profile if token value changes
+  //get user profile if token value changes
+  const [userProf, setUserProf] = useState();
   const [displayName, setDisplayName] = useState();
-  const [avatar, setAvatar] = useState();
-
+  const [avatar, setAvatar] = useState(
+    "https://miro.medium.com/max/720/1*W35QUSvGpcLuxPo3SRTH4w.png"
+  );
   useEffect(() => {
     if (token) {
-      console.log("I AM TOKEN", token);
       spotifyWebApi.setAccessToken(token);
       spotifyWebApi
         .getMe()
         .then((res) => {
-          let profile = {
-            displayName: res.display_name,
-            avatar:
-              "https://miro.medium.com/max/720/1*W35QUSvGpcLuxPo3SRTH4w.png",
-          };
-          return profile;
+          return res;
         })
         .then((profile) => {
-          setDisplayName(profile.displayName);
-          setAvatar(profile.avatar);
+          setUserProf(profile);
+          setDisplayName(profile.display_name);
         });
     }
   }, [token]);
+
+  //write user into db
+  useEffect(() => {
+    if (deviceId) {
+      db.collection("users").doc(deviceId).set({
+        user: userProf,
+      });
+    }
+  }, []);
 
   //load Spotify SDK script
   const [loading, error] = useScript({
@@ -63,8 +68,6 @@ function App() {
     onload: () => console.log("Script loaded"),
   });
 
-  //user profile
-  const [userProf, setUserProf] = useState();
   //get device Id of signed in user
   const [deviceId, setDeviceId] = useState();
   //none || host || listener
@@ -123,9 +126,6 @@ function App() {
       .then((res) => res.json())
       .then((res) => {
         setSResults(res.tracks.items);
-
-        console.log(res, "IM A RES??");
-        console.log(sResults, "IM THE SEARCH RESULTS");
       })
       .catch(errHandler);
   };
@@ -162,12 +162,10 @@ function App() {
         }
       });
       sdk.addListener("ready", ({ device_id }) => {
-        console.log("Ready with Device ID", device_id);
         setDeviceId(device_id);
       });
 
       sdk.addListener("player_state_changed", (state) => {
-        console.log("state changed", state);
         setState(state);
         setPaused(state.paused);
         setURI(state.track_window.current_track.uri);
@@ -190,7 +188,6 @@ function App() {
   const [listenerJoined, setListenerJoined] = useState(0);
   useEffect(() => {
     if (state && usertype === "host") {
-      console.log("URI AND PAUSED", uri, paused);
       db.collection("room").doc(deviceId).set({
         partyname: partyName,
         token: token,
@@ -200,6 +197,7 @@ function App() {
         uri: state.track_window.current_track.uri,
         position: state.position,
         pause: state.paused,
+        host: userProf,
       });
     }
   }, [uri, paused]);
@@ -261,6 +259,7 @@ function App() {
   const [listeningURI, setListeningURI] = useState();
   const [listeningPaused, setListeningPaused] = useState();
   const [listeningPosition, setListeningPosition] = useState();
+  const [hostInfo, setHostInfo] = useState();
 
   //WHENEVER DB IS READ AND ACTIVEROOMS VALUE CHANGES, LISTENINGPOSITION IS UPDATED
   useEffect(() => {
@@ -270,13 +269,6 @@ function App() {
       });
       const room = roomArr[0];
 
-      // db.collection("listeners").doc(deviceId).set({
-      //   token: token,
-      //   userProfile: userProf,
-      //   roomid: clickedRoom,
-      //   room: room,
-      // });
-
       const trackURI = room.uri;
       const trackPosition = room.position;
       const trackPaused = room.pause;
@@ -284,6 +276,7 @@ function App() {
       const roomName = room.partyname;
       const trackName = room.track;
       const trackArtwork = room.albumart;
+      const hostProf = room.host;
 
       setListeningArtist(trackArtist);
       setListeningTrack(trackName);
@@ -292,17 +285,12 @@ function App() {
       setListeningURI(trackURI);
       setListeningPaused(trackPaused);
       setListeningPosition(trackPosition);
-      console.log(
-        listeningPosition,
-        "IM ANOTHER LISTEING POSTION. ALL THE POS"
-      );
+      setHostInfo(hostProf);
     }
   }, [usertype, activeRooms]);
 
   useEffect(() => {
     if (usertype === "listener" && !playAllRoom) {
-      console.log("POSITION", position);
-      console.log("LisTENING POSITION", listeningPosition);
       if (!listeningPaused) {
         spotifyWebApi.setAccessToken(token);
         spotifyWebApi
@@ -357,6 +345,15 @@ function App() {
   const [playAllArtwork, setPlayAllArtwork] = useState();
   const [playAllArtist, setPlayAllArtist] = useState();
 
+  //add listener information to db when usertype changes
+  //   useEffect(() => {
+  // if(usertype === "listener" || usertype === "playroom") {
+  //   db.collection("listeners").doc(deviceId).set({
+
+  //   });
+  // }
+  //   }, [usertype])
+
   //sign in and get token
   if (!token) {
     return <Splash />;
@@ -366,6 +363,7 @@ function App() {
   else if (usertype === "none") {
     return (
       <ChooseRoom
+        deviceId={deviceId}
         setUsertype={setUsertype}
         activeRooms={activeRooms}
         setClickedRoom={setClickedRoom}
@@ -373,7 +371,6 @@ function App() {
         listenerJoined={listenerJoined}
         listeningPaused={listeningPaused}
         token={token}
-        deviceId={deviceId}
         listeningURI={listeningURI}
         listeningPosition={listeningPosition}
         setPlayAllRoom={setPlayAllRoom}
@@ -383,6 +380,7 @@ function App() {
         listeningArtist={listeningArtist}
         displayName={displayName}
         avatar={avatar}
+        userProf={userProf}
       />
     );
   }
@@ -416,10 +414,10 @@ function App() {
           deviceId={deviceId}
           uri={uri}
           position={position}
-          // queue={queue}
-          // addToQueue={addToQueue}
           sResults={sResults}
           resultsToggle={resultsToggle}
+          activeListeners={activeListeners}
+          clickedRoom={clickedRoom}
         />
       );
     }
@@ -431,6 +429,7 @@ function App() {
       <ListenRoom
         setUsertype={setUsertype}
         token={token}
+        deviceId={deviceId}
         listeningRoom={listeningRoom}
         listeningArtwork={listeningArtwork}
         listeningTrack={listeningTrack}
@@ -438,6 +437,9 @@ function App() {
         listeningPaused={listeningPaused}
         displayName={displayName}
         avatar={avatar}
+        activeListeners={activeListeners}
+        clickedRoom={clickedRoom}
+        hostInfo={hostInfo}
       />
     );
   } else if (usertype === "playroom" && playAllRoom) {
@@ -456,6 +458,7 @@ function App() {
         setPlayAllRoom={setPlayAllRoom}
         displayName={displayName}
         avatar={avatar}
+        activeListeners={activeListeners}
       />
     );
   } else {
