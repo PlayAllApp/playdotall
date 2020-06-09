@@ -50,6 +50,9 @@ function ChooseSong({
   //play pause icon display toggle
   const playIcon = useRef();
   const pauseIcon = useRef();
+  const listenersNum = useRef();
+  const searchResults = useRef();
+  const rightSide = useRef();
 
   //get listeners
   const playRoomListeners = activeListeners.filter((obj) => {
@@ -78,16 +81,11 @@ function ChooseSong({
           <p>{displayName}</p>
         </div>
       </header>
+      <h1>You are the host of {partyName}</h1>
       <div className={"search-page"}>
-        <h1>Search for a song to play at {partyName}</h1>
-        <div className="num-of-listeners">
-          <p>{numListeners} listeners</p>
-        </div>
-        {playRoomListeners.map((obj) => (
-          <div>
-            <p>{obj.listener.display_name} is listening</p>
-          </div>
-        ))}
+        <p>
+          Search for a song to play or connect and play directly from Spotify
+        </p>
         <div className={"search-bar-now-playing"}>
           <form onSubmit={searchHandler} className="search">
             <input
@@ -98,6 +96,7 @@ function ChooseSong({
             ></input>
             <input className="searchButton" type="submit" value="🔎"></input>
           </form>
+
           <div ref={nowPlaying} className={"now-playing"}>
             <img
               className={"rotating"}
@@ -105,7 +104,7 @@ function ChooseSong({
               alt="album-art"
             ></img>
             <p className={"now-playing-text"}>
-              Now Playing: {currentTrack} - {currentArtist} at {partyName}
+              {currentTrack} - {currentArtist}
             </p>
 
             <Volume token={token} />
@@ -140,71 +139,89 @@ function ChooseSong({
               />
             </div>
           </div>
-          <Queue queue={queue} />
-        </div>
-        <div className={"search-results"}>
-          {sResults !== [] &&
-            resultsToggle &&
-            sResults.map((track, i) => (
-              <div className={"result"}>
-                <div className={"image-icon"}>
-                  <img
-                    key={i}
-                    alt={"album-art"}
-                    src={track.album.images[1].url}
-                    onClick={() => {
-                      nowPlaying.current.style.display = "flex";
-                      spotifyWebApi.setAccessToken(token);
-                      spotifyWebApi.play({
-                        device_id: deviceId,
-                        uris: [track.uri],
-                      });
-                      queue.push({
-                        albumart: track.album.images[1].url,
-                        artist: track.artists[0].name,
-                        name: track.name,
-                      });
-                    }}
-                  ></img>
-                  <FontAwesomeIcon
-                    icon={faPlay}
-                    size="2x"
-                    className={"play-btn"}
-                    onClick={() => {
-                      nowPlaying.current.style.display = "flex";
-                      spotifyWebApi.setAccessToken(token);
-                      spotifyWebApi.play({
-                        device_id: deviceId,
-                        uris: [track.uri],
-                      });
-                      queue.push({
-                        albumart: track.album.images[1].url,
-                        artist: track.artists[0].name,
-                        name: track.name,
-                      });
-                    }}
-                  />
-                </div>
 
-                <div className={"result-track-details"}>
-                  <p className={"track-title"}>{track.name}</p>
-                  <p className={"artist-name"}>{track.artists[0].name}</p>
-                </div>
-                <button
-                  className={"que-button"}
-                  onClick={() => {
-                    addToQueue(track.uri);
-                    queue.push({
-                      albumart: track.album.images[1].url,
-                      artist: track.artists[0].name,
-                      name: track.name,
-                    });
-                  }}
-                >
-                  Add to playlist
-                </button>
+          <div className="split-half-container">
+            <div ref={searchResults} className={"search-results"}>
+              {sResults !== [] &&
+                resultsToggle &&
+                sResults.map((track, i) => (
+                  <div className={"result"}>
+                    <div className={"image-icon"}>
+                      <img
+                        key={i}
+                        alt={"album-art"}
+                        src={track.album.images[1].url}
+                        onClick={() => {
+                          nowPlaying.current.style.display = "flex";
+                          listenersNum.current.style.display = "flex";
+                          searchResults.current.style.width = "50%";
+                          rightSide.current.style.display = "block";
+                          spotifyWebApi.setAccessToken(token);
+                          spotifyWebApi.play({
+                            device_id: deviceId,
+                            uris: [track.uri],
+                          });
+                          queue.push({
+                            albumart: track.album.images[1].url,
+                            artist: track.artists[0].name,
+                            name: track.name,
+                          });
+                        }}
+                      ></img>
+                      <FontAwesomeIcon
+                        icon={faPlay}
+                        size="2x"
+                        className={"play-btn"}
+                        onClick={() => {
+                          nowPlaying.current.style.display = "flex";
+                          listenersNum.current.style.display = "flex";
+                          searchResults.current.style.width = "50%";
+                          rightSide.current.style.display = "block";
+                          spotifyWebApi.setAccessToken(token);
+                          spotifyWebApi.play({
+                            device_id: deviceId,
+                            uris: [track.uri],
+                          });
+                          queue.push({
+                            albumart: track.album.images[1].url,
+                            artist: track.artists[0].name,
+                            name: track.name,
+                          });
+                        }}
+                      />
+                    </div>
+
+                    <div className={"result-track-details"}>
+                      <p className={"track-title"}>{track.name}</p>
+                      <p className={"artist-name"}>{track.artists[0].name}</p>
+                    </div>
+                    <button
+                      className={"que-button"}
+                      onClick={() => {
+                        addToQueue(track.uri);
+                        queue.push({
+                          albumart: track.album.images[1].url,
+                          artist: track.artists[0].name,
+                          name: track.name,
+                        });
+                      }}
+                    >
+                      Add to playlist
+                    </button>
+                  </div>
+                ))}
+            </div>
+
+            <div className="right-half" ref={rightSide}>
+              <div ref={listenersNum} className="num-of-listeners-for-host">
+                <h2>{numListeners} listeners</h2>
+                {playRoomListeners.map((obj) => (
+                  <p>{obj.listener.display_name} 🎧</p>
+                ))}
               </div>
-            ))}
+              <Queue queue={queue} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

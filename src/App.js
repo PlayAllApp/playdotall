@@ -236,7 +236,6 @@ function App() {
           setPosition(position);
         });
       }, 5000);
-      console.log(position, "IM A POSITION FOR HOST");
       return () => clearInterval(interval);
     }
   });
@@ -259,7 +258,7 @@ function App() {
   const [listeningURI, setListeningURI] = useState();
   const [listeningPaused, setListeningPaused] = useState();
   const [listeningPosition, setListeningPosition] = useState();
-  const [hostInfo, setHostInfo] = useState();
+  const [hostInfo, setHostInfo] = useState("");
 
   //WHENEVER DB IS READ AND ACTIVEROOMS VALUE CHANGES, LISTENINGPOSITION IS UPDATED
   useEffect(() => {
@@ -418,6 +417,7 @@ function App() {
           resultsToggle={resultsToggle}
           activeListeners={activeListeners}
           clickedRoom={clickedRoom}
+          hostInfo={hostInfo}
         />
       );
     }

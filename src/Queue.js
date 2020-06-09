@@ -17,8 +17,8 @@ function Queue({ queue }) {
 
   if (queue.length > 0) {
     return (
-      <div>
-        <p>Playlist:</p>
+      <div className={"queue"}>
+        <h2>Playlist</h2>
         {queue.map((track, index) => (
           <div key={index} className={"queue-item"}>
             <img className="que-img" src={track.albumart} alt="album-art"></img>

@@ -62,7 +62,7 @@ function ChooseRoom({
         >
           ROOM
         </button>
-        and share music or join one of the rooms below and listen to music
+        and share music or join one of the rooms below and listen to music ♫
       </p>
       <div className="active-room-container">
         <div className="active-room">

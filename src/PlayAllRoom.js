@@ -87,45 +87,41 @@ function PlayAllRoom({
   const numListeners = playRoomListeners.length;
 
   return (
-    <div>
-      <div className="listener-page">
-        <header className="room-choice-header">
-          <h1
-            className="logo"
-            onClick={() => {
-              db.collection("listeners").doc(deviceId).delete();
-              setUsertype("none");
-              setPlayAllRoom(false);
-              spotifyWebApi.setAccessToken(token);
-              spotifyWebApi.pause().then((res) => console.log("pause", res));
-            }}
-          >
-            Play.All(▶)
-          </h1>
-          <div className="avatar-displayname">
-            <img src={avatar}></img>
-            <p>{displayName}</p>
-          </div>
-        </header>
-        <div className="listener-information">
-          <h1>Welcome to Play.All(▶) Jamz ♫</h1>
-          <div className="num-of-listeners">
-            <p>{numListeners} listeners</p>
-          </div>
-          {playRoomListeners.map((obj) => (
-            <div>
-              <p>{obj.listener.display_name} is listening</p>
-            </div>
-          ))}
-          <div className="listener-track-container">
-            <img src={playAllArtwork} className={"rotating"}></img>
-            <p>
-              Current track: {playAllTrack} by {playAllArtist}
-            </p>
-          </div>
+    <div className="listener-page">
+      <header className="room-choice-header">
+        <h1
+          className="logo"
+          onClick={() => {
+            db.collection("listeners").doc(deviceId).delete();
+            setUsertype("none");
+            setPlayAllRoom(false);
+            spotifyWebApi.setAccessToken(token);
+            spotifyWebApi.pause().then((res) => console.log("pause", res));
+          }}
+        >
+          Play.All(▶)
+        </h1>
+        <div className="avatar-displayname">
+          <img src={avatar}></img>
+          <p>{displayName}</p>
+        </div>
+      </header>
+      <h1>Welcome to Play.All(▶) Jamz ♫</h1>
+      <div className="listener-information">
+        <div className={"player-information"}>
+          <p>
+            Current track: {playAllTrack} by {playAllArtist}
+          </p>
+          <img src={playAllArtwork} className={"rotating"}></img>
           <div className={"listen-room-volume"}>
             <Volume token={token} />
           </div>
+        </div>
+        <div className="num-of-listeners">
+          <h2>{numListeners} listeners</h2>
+          {playRoomListeners.map((obj) => (
+            <p>{obj.listener.display_name} 🎧</p>
+          ))}
         </div>
       </div>
       <div className={"box"}>
